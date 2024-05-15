@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Requester</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script crossorigin="anonymous" integrity="sha384-KcyRSlC9FQog/lJsT+QA8AUIFBgnwKM7bxm7/YaX+NTr4D00npYawrX0h+oXI3a2" src="https://lib.baomitu.com/jquery/1.12.4/jquery.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Web Requester</h1>
+        <form id="request-form">
+            <label for="url-input">输入网站 URL：</label>
+            <input type="url" id="url-input" name="url" placeholder="https://example.com" required>
+            <select id="method-select" name="method">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="HEAD">HEAD</option>
+                <option value="TRACE">TRACE</option>
+                <option value="OPTIONS">OPTIONS</option>
+                <option value="PATCH">PATCH</option>
+            </select>
+            <select id="encoding-select" name="encoding">
+                <option value="UTF-8">UTF-8</option>
+                <option value="GBK">GBK</option>
+                <option value="GB2312">GB2312</option>
+                <option value="GB18030">GB18030</option>
+            </select>
+            <textarea id="data-input" name="data" placeholder="输入数据"></textarea>
+            <input type="text" id="custom-headers-input" name="custom-headers" placeholder='{"Content-Type": "application/json"}'>
+            <input type="text" id="cookie-input" name="cookie" placeholder="PHPSESSID=abc123; path=/">
+            <input type="text" id="proxy-input" name="proxy" placeholder="123.456.789.0:8080">
+            <button type="submit">发送请求</button>
+        </form>
+        <div class="result-container">
+            <div id="status" class="status"></div>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+    <script src="/static/main.js"></script>
+</body>
+</html>
