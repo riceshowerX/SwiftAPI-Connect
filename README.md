@@ -1,5 +1,5 @@
 # Web Requester
-[wiki]（https://github.com/riceshowerX/pyc/wiki）
+[wiki]
 
 Web Requester is a simple online tool for sending HTTP requests and viewing response results. You can use this tool to send various types of requests and view returned data, error messages, and more.
 
