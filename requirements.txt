@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pydantic
+httpx
+streamlit
+requests

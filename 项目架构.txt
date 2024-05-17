@@ -1,13 +1,20 @@
-http_simulator/
-├── main.py  # 主程序入口
-├── utils/
-│   ├── http_utils.py # HTTP 请求处理工具类
-│   └── encoding_utils.py # 编码处理工具类
-├── models/
-│   ├── request_model.py # 请求模型
-│   └── response_model.py # 响应模型
-├── schemas/
-│   ├── request_schema.py # 请求 schema
-│   └── response_schema.py # 响应 schema
-└── tests/
-    └── test_http_simulator.py # 测试用例
+SwiftAPI-Connect/
+├── run.py
+├── fastapi_server.py
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── http_mock.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── request_helper.py
+│   │   ├── encoding_helper.py
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   ├── request_schema.py
+│   │   ├── response_schema.py
+├── ui/
+│   └── app.py
+└── requirements.txt
