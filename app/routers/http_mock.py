@@ -1,3 +1,4 @@
+# http_mock.py
 from fastapi import APIRouter, HTTPException, Request
 from app.utils.request_helper import send_http_request
 from app.schemas.request_schema import HTTPRequestSchema
@@ -17,7 +18,7 @@ async def make_request(request: Request, data: HTTPRequestSchema):
             params=data.params,
             headers=data.headers,
             data=data.data,
-            json=data.json_data,  # 修改后的字段名
+            json_data=data.json_data,
             encoding=data.encoding,
         )
 
