@@ -4,9 +4,6 @@ from fastapi_server import run_fastapi
 from ui.app import run_ui
 import logging
 
-# 设置日志级别为 INFO
-logging.basicConfig(level=logging.INFO)
-
 def run_streamlit():
     run_ui()
 
