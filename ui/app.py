@@ -4,6 +4,7 @@ import requests
 import json
 import logging
 
+# 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
 
 def get_params(param_type, key_prefix, value_prefix):

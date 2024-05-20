@@ -1,7 +1,7 @@
 # request_schema.py
 from typing import Dict, Optional, Union
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, AnyUrl
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -16,9 +16,24 @@ class HTTPRequestSchema(BaseModel):
     :param encoding: 请求体的编码
     """
     method: str
-    url: HttpUrl
-    params: Optional[Dict[str, str]] = None
-    headers: Optional[Dict[str, str]] = None
+    url: AnyUrl
+    params: Optional[Dict[str, str]] = {}
+    headers: Optional[Dict[str, str]] = {}
     data: Optional[Union[str, Dict]] = None
     json_data: Optional[Dict] = None
     encoding: Optional[str] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if v.params is None:
+            v.params = {}
+        if v.headers is None:
+            v.headers = {}
+        return v
