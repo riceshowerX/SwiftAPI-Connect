@@ -1,0 +1,7 @@
+2024-05-20 16:53:10 - INFO - main.py:33 - FastAPI application setup complete.
+2024-05-20 16:53:10 - INFO - run.py:19 - Starting FastAPI process with ID: None
+2024-05-20 16:53:10 - INFO - run.py:20 - Starting Streamlit process with ID: None
+2024-05-20 16:53:11 - INFO - main.py:33 - FastAPI application setup complete.
+2024-05-20 16:53:11 - INFO - main.py:33 - FastAPI application setup complete.
+2024-05-20 16:53:11 - INFO - fastapi_server.py:13 - Starting FastAPI server...
+2024-05-20 16:53:11 - DEBUG - proactor_events.py:634 - Using proactor: IocpProactor

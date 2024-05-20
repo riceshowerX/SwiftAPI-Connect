@@ -4,6 +4,9 @@ from fastapi_server import run_fastapi
 from ui.app import run_ui
 import logging
 
+# 设置日志级别为 INFO
+logging.basicConfig(level=logging.INFO)
+
 def run_streamlit():
     run_ui()
 
@@ -12,6 +15,9 @@ if __name__ == "__main__":
         # 创建两个进程，一个运行 FastAPI 服务器，一个运行 Streamlit UI 应用
         fastapi_process = Process(target=run_fastapi)
         streamlit_process = Process(target=run_streamlit)
+
+        logging.info(f"Starting FastAPI process with ID: {fastapi_process.pid}")
+        logging.info(f"Starting Streamlit process with ID: {streamlit_process.pid}")
 
         # 启动两个进程
         fastapi_process.start()

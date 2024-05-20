@@ -4,8 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import http_mock
 import logging
 
-# 设置日志级别为 INFO
-logging.basicConfig(level=logging.INFO)
+# 设置日志级别为 DEBUG
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    filename="app.log"
+)
 
 app = FastAPI(
     title="HTTP Mock Server",
@@ -13,12 +18,12 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# CORS middleware
+# CORS middleware (允许所有源)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost", "https://example.com"],  # 根据实际需求设置允许的源
+    allow_origins=["*"],  # 允许所有源
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["*"],  # 允许所有方法
     allow_headers=["*"],
 )
 

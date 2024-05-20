@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from app.utils.request_helper import send_http_request
 from app.schemas.request_schema import HTTPRequestSchema
 from app.schemas.response_schema import HTTPResponseSchema
+from fastapi.responses import JSONResponse
 
 router = APIRouter(
     prefix="/mock",
@@ -28,8 +29,7 @@ async def make_request(request: Request, data: HTTPRequestSchema):
             "headers": dict(response.headers),
             "elapsed": response.elapsed.total_seconds()
         }
-
-        return HTTPResponseSchema(**response_data)
+        return JSONResponse(response_data)
     except TimeoutError as e:
         raise HTTPException(status_code=504, detail="Gateway Timeout")
     except ConnectionError as e:
