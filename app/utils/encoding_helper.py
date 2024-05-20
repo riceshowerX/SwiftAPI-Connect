@@ -1,3 +1,4 @@
+# encoding_helper.py
 def decode_content(content, encoding):
     if encoding:
         try:
