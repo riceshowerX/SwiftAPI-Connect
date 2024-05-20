@@ -1,62 +1,48 @@
 
 # SwiftAPI-Connect
 
-SwiftAPI-Connect 是一个基于 FastAPI 的强大 API 连接器，用于模拟 HTTP 请求并提供用户界面进行测试。
+SwiftAPI-Connect 是一个基于 FastAPI 的强大 API 连接器，旨在模拟 HTTP 请求并为测试提供用户界面。该项目的主要目标是简化开发人员的测试过程，并提供一种直观的方式来检查和验证 API 的行为。
 
-## 目录结构
+**免责声明：** 本项目按原样提供，不附带任何明示或暗示的保证。使用者需自行承担风险。本项目的作者和贡献者对因使用本软件而导致的任何损失或损害不承担任何责任。
 
-```
-SwiftAPI-Connect/
-├── run.py                 # 主运行脚本
-├── fastapi_server.py      # FastAPI 服务器配置
-├── app/
-│   ├── __init__.py        # 初始化模块
-│   ├── main.py            # 主应用入口
-│   ├── routers/           # 路由模块
-│   │   ├── __init__.py    # 初始化路由模块
-│   │   ├── http_mock.py   # HTTP Mock 路由
-│   ├── utils/             # 工具模块
-│   │   ├── __init__.py    # 初始化工具模块
-│   │   ├── request_helper.py # 请求辅助工具
-│   │   ├── encoding_helper.py # 编码辅助工具
-│   ├── schemas/           # 模式定义模块
-│   │   ├── __init__.py    # 初始化模式模块
-│   │   ├── request_schema.py  # 请求模式定义
-│   │   ├── response_schema.py # 响应模式定义
-├── ui/
-│   └── app.py             # UI 应用入口
-└── requirements.txt       # 依赖包列表
-```
+### 主要特性
 
-## 使用说明
+- 使用 FastAPI 构建，提供快速和高效的 API 服务。
+- 内置用户界面，可视化展示 HTTP 请求和响应，并提供简单易用的操作界面。
+- 支持模拟 HTTP 请求，包括 GET、POST、PUT、DELETE 等各种方法。
+- 提供详细的响应信息，便于检查和调试 API 响应。
 
-1. **克隆项目到本地：**
+### 快速开始
 
-    ```bash
-    git clone https://github.com/your_username/SwiftAPI-Connect.git
-    ```
+要开始使用 SwiftAPI-Connect，请按照以下步骤操作：
 
-2. **安装依赖：**
+1. 克隆代码库：
 
-    ```bash
-    cd SwiftAPI-Connect
-    pip install -r requirements.txt
-    ```
+   ```bash
+   git clone https://github.com/your_username/SwiftAPI-Connect.git
+   ```
 
-3. **运行应用程序：**
+2. 安装依赖：
 
-    ```bash
-    streamlit run ui/app.py
-    ```
+   ```bash
+   cd SwiftAPI-Connect
+   pip install -r requirements.txt
+   ```
 
-4. **访问用户界面：**
+3. 运行应用程序：
 
-    打开浏览器并访问 [http://localhost:8501](http://localhost:8501)。
+   ```bash
+   streamlit run ui/app.py
+   ```
 
-## 贡献
+4. 访问用户界面：
 
-欢迎贡献代码，提出建议或报告问题。您可以通过提交 pull request 或 issue 来贡献。
+   在浏览器中打开 [http://localhost:8501](http://localhost:8501)。
 
-## 许可证
+### 贡献
 
-本项目采用 Apache License 2.0 许可证。详细信息请参阅 [LICENSE](LICENSE) 文件。
+欢迎贡献！如果您有任何想法、建议或发现任何问题，请随时提交 pull request 或开启 issue。
+
+### 许可证
+
+SwiftAPI-Connect 使用 Apache License 2.0 许可。详细信息请参阅 [LICENSE](LICENSE) 文件。
