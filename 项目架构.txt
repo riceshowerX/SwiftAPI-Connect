@@ -1,20 +1,20 @@
 SwiftAPI-Connect/
-├── run.py
-├── fastapi_server.py
+├── run.py                 # 主运行脚本
+├── fastapi_server.py      # FastAPI 服务器配置
 ├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── http_mock.py
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── request_helper.py
-│   │   ├── encoding_helper.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   ├── request_schema.py
-│   │   ├── response_schema.py
+│   ├── __init__.py        # 初始化模块
+│   ├── main.py            # 主应用入口
+│   ├── routers/           # 路由模块
+│   │   ├── __init__.py    # 初始化路由模块
+│   │   ├── http_mock.py   # HTTP Mock 路由
+│   ├── utils/             # 工具模块
+│   │   ├── __init__.py    # 初始化工具模块
+│   │   ├── request_helper.py # 请求辅助工具
+│   │   ├── encoding_helper.py # 编码辅助工具
+│   ├── schemas/           # 模式定义模块
+│   │   ├── __init__.py    # 初始化模式模块
+│   │   ├── request_schema.py  # 请求模式定义
+│   │   ├── response_schema.py # 响应模式定义
 ├── ui/
-│   └── app.py
-└── requirements.txt
+│   └── app.py             # UI 应用入口
+└── requirements.txt       # 依赖包列表
