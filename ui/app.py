@@ -3,9 +3,24 @@ import streamlit as st
 import requests
 import json
 import logging
+from pydantic import BaseModel, AnyUrl, Field
+from typing import Dict, Optional, Union
+import time
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
+
+class HTTPRequestSchema(BaseModel):
+    """
+    HTTP 请求模式定义
+    """
+    method: str = Field(..., description="HTTP 方法", example="GET")
+    url: AnyUrl = Field(..., description="请求 URL", example="https://example.com")
+    params: Optional[Dict[str, str]] = Field({}, description="查询参数", example={"key1": "value1", "key2": "value2"})
+    headers: Optional[Dict[str, str]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
+    data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
+    json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
+    encoding: Optional[str] = Field(None, description="请求体的编码")
 
 def get_params(param_type, key_prefix, value_prefix):
     params = {}
@@ -19,6 +34,46 @@ def get_params(param_type, key_prefix, value_prefix):
                 value = st.text_input(f"{param_type} 参数 {i+1} 的 Value", key=f"{value_prefix}_{i}")
             params[key] = value
     return params
+
+def send_request(method, url, params, headers, data, json_data, encoding):
+    try:
+        # 创建进度条
+        progress_bar = st.progress(0)
+
+        # 模拟请求处理时间
+        for i in range(10):
+            time.sleep(0.1)
+            progress_bar.progress(i * 10)
+
+        response = None
+        if method == "GET":
+            response = requests.get(url, params=params, headers=headers)
+        elif method == "POST":
+            if json_data:
+                response = requests.post(url, json=json_data, headers=headers)
+            else:
+                response = requests.post(url, data=data, headers=headers)
+        elif method == "PUT":
+            if json_data:
+                response = requests.put(url, json=json_data, headers=headers)
+            else:
+                response = requests.put(url, data=data, headers=headers)
+        elif method == "DELETE":
+            response = requests.delete(url, headers=headers)
+        elif method == "HEAD":
+            response = requests.head(url, headers=headers)
+        elif method == "OPTIONS":
+            response = requests.options(url, headers=headers)
+        elif method == "TRACE":
+            response = requests.request("TRACE", url, headers=headers)
+
+        # 设置进度条为 100%
+        progress_bar.progress(100)
+
+        return response
+    except Exception as e:
+        logging.error(f"Request failed: {e}")
+        raise
 
 def run_ui():
     st.title("HTTP 请求模拟工具")
@@ -57,27 +112,7 @@ def run_ui():
     # 发送请求按钮
     if st.button("发送请求"):
         try:
-            response = None
-            if method == "GET":
-                response = requests.get(url, params=query_params, headers=headers)
-            elif method == "POST":
-                if json_data:
-                    response = requests.post(url, json=json_data, headers=headers)
-                else:
-                    response = requests.post(url, data=data, headers=headers)
-            elif method == "PUT":
-                if json_data:
-                    response = requests.put(url, json=json_data, headers=headers)
-                else:
-                    response = requests.put(url, data=data, headers=headers)
-            elif method == "DELETE":
-                response = requests.delete(url, headers=headers)
-            elif method == "HEAD":
-                response = requests.head(url, headers=headers)
-            elif method == "OPTIONS":
-                response = requests.options(url, headers=headers)
-            elif method == "TRACE":
-                response = requests.request("TRACE", url, headers=headers)
+            response = send_request(method, url, query_params, headers, data, json_data, encoding)
 
             # 展示结果
             st.header("请求结果")
@@ -90,7 +125,6 @@ def run_ui():
 
         except Exception as e:
             st.error(f"请求失败: {str(e)}")
-            logging.error(f"Request failed: {e}")
 
 if __name__ == "__main__":
     run_ui()

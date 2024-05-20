@@ -1,7 +1,7 @@
 # response_schema.py
-from typing import Dict
+from typing import Dict, Optional, Union, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class HTTPResponseSchema(BaseModel):
     """
@@ -12,7 +12,8 @@ class HTTPResponseSchema(BaseModel):
     :param headers: 响应头信息
     :param elapsed: 响应时间（秒）
     """
-    status_code: int
-    text: str
-    headers: Dict[str, str]
-    elapsed: float
+
+    status_code: int = Field(..., description="响应状态码", example=200)
+    text: Optional[Union[str, bytes]] = Field(None, description="响应正文内容")
+    headers: Dict[str, Union[str, List[str]]] = Field(..., description="响应头信息")
+    elapsed: float = Field(..., description="响应时间（秒）", example=0.5)

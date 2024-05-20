@@ -1,7 +1,7 @@
 # request_schema.py
 from typing import Dict, Optional, Union
 
-from pydantic import BaseModel, AnyUrl
+from pydantic import BaseModel, AnyUrl, Field
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -15,25 +15,13 @@ class HTTPRequestSchema(BaseModel):
     :param json_data: JSON 请求体数据
     :param encoding: 请求体的编码
     """
-    method: str
-    url: AnyUrl
-    params: Optional[Dict[str, str]] = {}
-    headers: Optional[Dict[str, str]] = {}
-    data: Optional[Union[str, Dict]] = None
-    json_data: Optional[Dict] = None
-    encoding: Optional[str] = None
+    method: str = Field(..., description="HTTP 方法", example="GET")
+    url: AnyUrl = Field(..., description="请求 URL", example="https://example.com")
+    params: Optional[Dict[str, str]] = Field({}, description="查询参数", example={"key1": "value1", "key2": "value2"})
+    headers: Optional[Dict[str, str]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
+    data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
+    json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
+    encoding: Optional[str] = Field(None, description="请求体的编码")
 
     class Config:
         arbitrary_types_allowed = True
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if v.params is None:
-            v.params = {}
-        if v.headers is None:
-            v.headers = {}
-        return v
