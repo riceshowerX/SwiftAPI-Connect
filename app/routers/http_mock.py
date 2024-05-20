@@ -22,11 +22,17 @@ async def make_request(request: Request, data: HTTPRequestSchema):
             encoding=data.encoding,
         )
 
-        return {
+        response_data = {
             "status_code": response.status_code,
             "text": response.text,
             "headers": dict(response.headers),
             "elapsed": response.elapsed.total_seconds()
         }
+
+        return HTTPResponseSchema(**response_data)
+    except TimeoutError as e:
+        raise HTTPException(status_code=504, detail="Gateway Timeout")
+    except ConnectionError as e:
+        raise HTTPException(status_code=502, detail="Bad Gateway")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

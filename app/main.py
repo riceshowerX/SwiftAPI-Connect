@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import http_mock
 import logging
 
+# 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(
@@ -15,7 +16,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境应限制允许的源
+    allow_origins=["http://localhost", "https://example.com"],  # 根据实际需求设置允许的源
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
