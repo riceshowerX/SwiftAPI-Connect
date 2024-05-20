@@ -4,7 +4,12 @@ from fastapi_server import run_fastapi
 from ui.app import run_ui
 import logging
 
+# 设置日志级别为 INFO
+logging.basicConfig(level=logging.INFO)
+
 def run_streamlit():
+    import sys
+    sys.path.append("C:\\Users\\21440\\Documents\\GitHub\\SwiftAPI-Connect\\app")  # 替换为你的项目目录
     run_ui()
 
 if __name__ == "__main__":
