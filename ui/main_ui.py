@@ -5,16 +5,18 @@ import json
 import logging
 import time
 import chardet
-import sys
-sys.path.insert(0, 'C:\\Users\\21440\\Documents\\GitHub\\SwiftAPI-Connect')
-from app.utils.crypto import encrypt_data
-
-
-
 
 from typing import Dict, Optional, Union
 from pydantic import BaseModel, AnyUrl, Field, field_validator
-from requests.exceptions import RequestException
+
+from ui.components.request_form import get_params 
+from ui.components.progress_bar import show_progress_bar
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from ui.components.request_form import get_params
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -34,10 +36,6 @@ COMMON_ENCODINGS = [
     "euc-kr",
 ]
 
-# 从环境变量获取加密密钥
-ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
-if not ENCRYPTION_KEY:
-    raise ValueError("ENCRYPTION_KEY environment variable is not set.")
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -52,7 +50,7 @@ class HTTPRequestSchema(BaseModel):
     headers: Optional[Dict[str, str]] = Field(
         {}, description="请求头", example={"User-Agent": "Mozilla/5.0"}
     )
-    data: Optional[str] = Field(None, description="请求体数据")
+    data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
     json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
     encoding: Optional[str] = Field(
         None, description="请求体的编码", example="utf-8"
@@ -78,51 +76,17 @@ class HTTPRequestSchema(BaseModel):
         return value.upper()  # 统一转换为大写
 
 
-def get_params(param_type, key_prefix, value_prefix):
-    params = {}
-    with st.expander(f"{param_type} 参数"):
-        param_count = st.number_input(
-            f"{param_type} 参数数量", min_value=0, step=1, key=f"{param_type}_params_count"
-        )
-        for i in range(param_count):
-            col1, col2 = st.columns(2)
-            with col1:
-                key = st.text_input(
-                    f"{param_type} 参数 {i+1} 的 Key", key=f"{key_prefix}_{i}"
-                )
-            with col2:
-                value = st.text_input(
-                    f"{param_type} 参数 {i+1} 的 Value", key=f"{value_prefix}_{i}"
-                )
-            params[key] = value
-    return params
-
-
 def send_request(method, url, params, headers, data, json_data, encoding):
     try:
-        # 创建进度条
-        progress_bar = st.progress(0)
-
-        # 模拟请求处理时间
-        for i in range(10):
-            time.sleep(0.1)
-            progress_bar.progress(i * 10)
-
-        # 加密请求数据
-        if data:
-            data = encrypt_data(data.encode(), ENCRYPTION_KEY).decode()
-        if json_data:
-            json_data = json.loads(encrypt_data(json.dumps(json_data).encode(), ENCRYPTION_KEY).decode())
-
+        # 使用进度条组件
+        show_progress_bar()
+        
         response = requests.request(
             method, url, params=params, headers=headers, data=data, json=json_data
         )
 
-        # 设置进度条为 100%
-        progress_bar.progress(100)
-
         return response
-    except RequestException as e:
+    except Exception as e:
         logging.error(f"Request failed: {e}")
         raise
 
@@ -217,10 +181,8 @@ def run_ui():
             st.write("响应内容:")
             st.text(response_text)
 
-        except RequestException as e:
+        except Exception as e:
             st.error(f"请求失败: {str(e)}")
-        except ValueError as e:
-            st.error(f"验证失败: {str(e)}")
 
 
 if __name__ == "__main__":

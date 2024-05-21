@@ -2,7 +2,7 @@
 import httpx
 import logging
 from typing import Dict, Any, Optional
-from app.errors.http_errors import HTTPError
+from app.core.errors.http_errors import HTTPError
 
 async def send_http_request(
     method: str,

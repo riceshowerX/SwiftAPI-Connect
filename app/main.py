@@ -1,6 +1,7 @@
 # main.py
 from fastapi import FastAPI
-from app.routers import http_mock
+
+from app.core.routers import http_mock 
 import logging
 
 # 设置日志级别为 DEBUG

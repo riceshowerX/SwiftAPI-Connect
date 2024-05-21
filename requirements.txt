@@ -8,5 +8,3 @@ requests
 chardet
 python-dotenv
 psutil
-cryptography
-loguru

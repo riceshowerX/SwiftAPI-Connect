@@ -1,11 +1,10 @@
 # encoding_helper.py
 import logging
 import chardet
-from typing import Optional
 
 DEFAULT_ENCODING = "utf-8"  # 设置默认编码
 
-def decode_content(content: bytes, encoding: Optional[str] = None) -> str:
+def decode_content(content: bytes, encoding: str = None) -> str:
     """
     解码字节内容，优先使用默认编码，如果解码失败，则尝试使用 chardet 检测编码。
 
@@ -20,15 +19,15 @@ def decode_content(content: bytes, encoding: Optional[str] = None) -> str:
         logging.debug(f"Attempting to decode content with encoding: {encoding}")
         return content.decode(encoding)
     except UnicodeDecodeError as e:
-        logging.warning(f"UnicodeDecodeError: {e}.")
+        logging.warning(f"UnicodeDecodeError: {e}. Trying to detect encoding with chardet.")
         detected_encoding = chardet.detect(content)['encoding']
         if detected_encoding is not None:
-            logging.info(f"Detected encoding: {detected_encoding}")
+            logging.debug(f"Detected encoding: {detected_encoding}")
             try:
                 return content.decode(detected_encoding)
             except UnicodeDecodeError as e:
-                logging.error(f"Failed to decode content with detected encoding: {e}.")
-                raise
+                logging.error(f"Failed to decode content with detected encoding: {e}. Returning original bytes.")
+                return content.decode(DEFAULT_ENCODING, errors='replace')
         else:
-            logging.warning(f"Failed to detect encoding. Using default encoding ({DEFAULT_ENCODING}).")
-            return content.decode(DEFAULT_ENCODING, errors='replace')
+            logging.warning(f"Failed to detect encoding. Using default encoding ({DEFAULT_ENCODING}) and ignoring errors.")
+            return content.decode(DEFAULT_ENCODING, errors="ignore")
