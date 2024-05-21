@@ -1,7 +1,8 @@
 # fastapi_server.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.main import app as fastapi_app
+from app.errors.http_errors import http_exception_handler
 import logging
 import uvicorn
 import os
@@ -18,6 +19,14 @@ API_KEY = os.getenv("API_KEY")
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
+
+# 添加 API 密钥验证
+async def api_key_auth(request: Request, call_next):
+    api_key = request.headers.get("x-api-key")
+    if api_key is None or api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    response = await call_next(request)
+    return response
 
 def run_fastapi():
     try:
@@ -57,6 +66,7 @@ def run_fastapi():
     except Exception as e:
         logging.error(f"An error occurred while running the FastAPI server: {e}")
 
+
 if __name__ == "__main__":
     # 添加 CORS 中间件 (全局配置)
     fastapi_app.add_middleware(
@@ -67,13 +77,10 @@ if __name__ == "__main__":
         allow_headers=["*"],
     )
 
-    # 添加 API 密钥验证
-    @fastapi_app.middleware("http")
-    async def api_key_auth(request: Request, call_next):
-        api_key = request.headers.get("x-api-key")
-        if api_key is None or api_key != API_KEY:
-            raise HTTPException(status_code=401, detail="Invalid API key")
-        response = await call_next(request)
-        return response
+    # 添加 API 密钥验证中间件
+    fastapi_app.middleware("http")(api_key_auth)
 
+    # 添加全局异常处理
+    fastapi_app.add_exception_handler(HTTPException, http_exception_handler)
+    
     run_fastapi()

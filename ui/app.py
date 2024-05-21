@@ -3,10 +3,11 @@ import streamlit as st
 import requests
 import json
 import logging
-from pydantic import BaseModel, AnyUrl, Field, validator, field_validator
-from typing import Dict, Optional, Union
 import time
 import chardet
+
+from typing import Dict, Optional, Union
+from pydantic import BaseModel, AnyUrl, Field, field_validator
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -26,37 +27,65 @@ COMMON_ENCODINGS = [
     "euc-kr",
 ]
 
+
 class HTTPRequestSchema(BaseModel):
     """
     HTTP 请求模式定义
     """
+
     method: str = Field(..., description="HTTP 方法", example="GET")
     url: AnyUrl = Field(..., description="请求 URL", example="https://example.com")
-    params: Optional[Dict[str, str]] = Field({}, description="查询参数", example={"key1": "value1", "key2": "value2"})
-    headers: Optional[Dict[str, str]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
+    params: Optional[Dict[str, str]] = Field(
+        {}, description="查询参数", example={"key1": "value1", "key2": "value2"}
+    )
+    headers: Optional[Dict[str, str]] = Field(
+        {}, description="请求头", example={"User-Agent": "Mozilla/5.0"}
+    )
     data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
     json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
-    encoding: Optional[str] = Field(None, description="请求体的编码", example="utf-8")
+    encoding: Optional[str] = Field(
+        None, description="请求体的编码", example="utf-8"
+    )
 
-    @field_validator('method')  # 使用 @field_validator
+    @field_validator("method")
     def method_must_be_valid(cls, value):
-        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
+        valid_methods = [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "HEAD",
+            "OPTIONS",
+            "CONNECT",
+            "TRACE",
+        ]
         if value.upper() not in valid_methods:
-            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
+            raise ValueError(
+                f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}"
+            )
         return value.upper()  # 统一转换为大写
+
 
 def get_params(param_type, key_prefix, value_prefix):
     params = {}
     with st.expander(f"{param_type} 参数"):
-        param_count = st.number_input(f"{param_type} 参数数量", min_value=0, step=1, key=f"{param_type}_params_count")
+        param_count = st.number_input(
+            f"{param_type} 参数数量", min_value=0, step=1, key=f"{param_type}_params_count"
+        )
         for i in range(param_count):
             col1, col2 = st.columns(2)
             with col1:
-                key = st.text_input(f"{param_type} 参数 {i+1} 的 Key", key=f"{key_prefix}_{i}")
+                key = st.text_input(
+                    f"{param_type} 参数 {i+1} 的 Key", key=f"{key_prefix}_{i}"
+                )
             with col2:
-                value = st.text_input(f"{param_type} 参数 {i+1} 的 Value", key=f"{value_prefix}_{i}")
+                value = st.text_input(
+                    f"{param_type} 参数 {i+1} 的 Value", key=f"{value_prefix}_{i}"
+                )
             params[key] = value
     return params
+
 
 def send_request(method, url, params, headers, data, json_data, encoding):
     try:
@@ -68,7 +97,9 @@ def send_request(method, url, params, headers, data, json_data, encoding):
             time.sleep(0.1)
             progress_bar.progress(i * 10)
 
-        response = requests.request(method, url, params=params, headers=headers, data=data, json=json_data)
+        response = requests.request(
+            method, url, params=params, headers=headers, data=data, json=json_data
+        )
 
         # 设置进度条为 100%
         progress_bar.progress(100)
@@ -78,11 +109,19 @@ def send_request(method, url, params, headers, data, json_data, encoding):
         logging.error(f"Request failed: {e}")
         raise
 
+def update_api_key():
+    """更新 API Key 到 session_state"""
+    st.session_state.api_key = st.session_state.api_key_input
+
 def run_ui():
     st.title("HTTP 请求模拟工具")
 
     # 选择 HTTP 方法
-    method = st.selectbox("选择 HTTP 方法", ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE"], key="method")
+    method = st.selectbox(
+        "选择 HTTP 方法",
+        ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE"],
+        key="method",
+    )
 
     # 输入 URL
     url = st.text_input("输入 URL", key="url")
@@ -104,7 +143,14 @@ def run_ui():
     # Header 输入区域
     st.header("Header")
     headers = get_params("Header", "header_key", "header_value")
-    headers['x-api-key'] = st.text_input("输入 API Key", key="api_key")
+
+    # 使用secrets存储API Key
+    if "api_key" not in st.session_state:
+        st.session_state.api_key = ""
+    st.session_state.api_key_input = st.text_input(
+        "输入 API Key", key="api_key", value=st.session_state.api_key, on_change=update_api_key
+    )
+    headers["x-api-key"] = st.session_state.api_key
 
     # Data 输入区域
     st.header("Data")
@@ -124,7 +170,7 @@ def run_ui():
                 headers=headers,
                 data=data,
                 json_data=json_data,
-                encoding=encoding
+                encoding=encoding,
             )
             logging.info(f"Request data: {request_data}")
 
@@ -135,13 +181,15 @@ def run_ui():
                 headers=request_data.headers,
                 data=request_data.data,
                 json_data=request_data.json_data,
-                encoding=request_data.encoding
+                encoding=request_data.encoding,
             )
 
             # 自动检测响应编码
-            detected_encoding = chardet.detect(response.content)['encoding']
+            detected_encoding = chardet.detect(response.content)["encoding"]
             logging.info(f"Detected response encoding: {detected_encoding}")
-            response_text = response.content.decode(detected_encoding, errors='replace')
+            response_text = response.content.decode(
+                detected_encoding, errors="replace"
+            )
 
             # 展示结果
             st.header("请求结果")
@@ -154,6 +202,7 @@ def run_ui():
 
         except Exception as e:
             st.error(f"请求失败: {str(e)}")
+
 
 if __name__ == "__main__":
     run_ui()

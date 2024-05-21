@@ -2,7 +2,7 @@
 from typing import Dict, Optional, Union, List
 from datetime import datetime
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, HttpUrl
 
 class HTTPResponseSchema(BaseModel):
     """
@@ -20,7 +20,7 @@ class HTTPResponseSchema(BaseModel):
     text: Optional[Union[str, bytes]] = Field(None, description="响应正文内容")
     headers: Dict[str, Union[str, List[str]]] = Field(..., description="响应头信息")
     elapsed: float = Field(..., description="响应时间（秒）", example=0.5)
-    encoding: Optional[str] = Field(None, description="响应正文的编码格式", example="utf-8")
+    encoding: Optional[str] = Field("utf-8", description="响应正文的编码格式", example="utf-8")
     content_type: Optional[str] = Field(None, description="响应正文的 MIME 类型", example="text/plain")
 
     @validator('elapsed')
