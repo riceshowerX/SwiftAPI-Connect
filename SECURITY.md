@@ -17,7 +17,7 @@
 
 ### 报告流程
 
-1. **报告位置**：漏洞应通过我们的专用电子邮件地址报告：[security@example.com](mailto:security@example.com)。请在主题中使用“漏洞报告：[项目名称]”。
+1. **报告位置**：漏洞应通过我们的专用电子邮件地址报告：[huaizhu@miksz.cc](mailto:huaizhu@miksz.cc)。请在主题中使用“漏洞报告：[SwiftAPI-Connect]”。
 
 2. **报告所需信息**：
    - 漏洞的详细描述。
