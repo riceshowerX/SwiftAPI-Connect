@@ -17,7 +17,7 @@ SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
 SERVER_PORT = int(os.getenv("SERVER_PORT", 8015))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:8501").split(',')
 API_KEY = os.getenv("API_KEY")
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "").encode()  # 读取加密密钥
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "huaizhu").encode()  # 读取加密密钥
 
 # 设置日志
 logger.add(

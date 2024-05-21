@@ -5,13 +5,16 @@ import json
 import logging
 import time
 import chardet
-import os
+import sys
+sys.path.insert(0, 'C:\\Users\\21440\\Documents\\GitHub\\SwiftAPI-Connect')
+from app.utils.crypto import encrypt_data
+
+
+
 
 from typing import Dict, Optional, Union
 from pydantic import BaseModel, AnyUrl, Field, field_validator
 from requests.exceptions import RequestException
-
-from ..app.utils.crypto import encrypt_data
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
