@@ -1,6 +1,10 @@
 fastapi
 uvicorn
+python-multipart
 pydantic
 httpx
 streamlit
 requests
+chardet
+python-dotenv
+psutil

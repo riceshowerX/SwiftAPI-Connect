@@ -4,17 +4,36 @@ SwiftAPI-Connect/
 ├── app/
 │   ├── __init__.py        # 初始化模块
 │   ├── main.py            # 主应用入口
-│   ├── routers/           # 路由模块
-│   │   ├── __init__.py    # 初始化路由模块
-│   │   ├── http_mock.py   # HTTP Mock 路由
-│   ├── utils/             # 工具模块
-│   │   ├── __init__.py    # 初始化工具模块
-│   │   ├── request_helper.py # 请求辅助工具
-│   │   ├── encoding_helper.py # 编码辅助工具
-│   ├── schemas/           # 模式定义模块
-│   │   ├── __init__.py    # 初始化模式模块
-│   │   ├── request_schema.py  # 请求模式定义
-│   │   ├── response_schema.py # 响应模式定义
+│   ├── core/              # 核心模块
+│   │   ├── __init__.py    # 初始化核心模块
+│   │   ├── routers/       # 路由模块
+│   │   │   ├── __init__.py # 初始化路由模块
+│   │   │   ├── http_mock.py # HTTP Mock 路由
+│   │   ├── utils/         # 工具模块
+│   │   │   ├── __init__.py # 初始化工具模块
+│   │   │   ├── request_helper.py # 请求辅助工具
+│   │   │   ├── encoding_helper.py # 编码辅助工具
+│   │   │   ├── process_monitor.py # 进程监控工具
+│   │   │   ├── crypto.py    # 加密工具
+│   │   ├── schemas/       # 模式定义模块
+│   │   │   ├── __init__.py  # 初始化模式模块
+│   │   │   ├── request_schema.py # 请求模式定义
+│   │   │   ├── response_schema.py # 响应模式定义
+│   │   ├── errors/       # 自定义异常模块
+│   │   │   ├── __init__.py  # 初始化异常模块
+│   │   │   ├── http_errors.py # HTTP 错误定义
+│   ├── config/            # 配置模块
+│   │   ├── __init__.py    # 初始化配置模块
+│   │   ├── config.py      # 配置定义
+│   ├── services/          # 服务模块
+│   │   ├── __init__.py    # 初始化服务模块
+│   │   ├── task_manager.py # 任务管理服务
+│   │   ├── notification.py # 通知服务
 ├── ui/
-│   └── app.py             # UI 应用入口
+│   ├── __init__.py        # 初始化UI模块
+│   ├── main_ui.py         # UI 应用入口（原 app.py）
+│   ├── components/        # UI组件
+│   │   ├── __init__.py    # 初始化组件模块
+│   │   ├── progress_bar.py # 进度条组件
+│   │   ├── request_form.py # 请求表单组件
 └── requirements.txt       # 依赖包列表

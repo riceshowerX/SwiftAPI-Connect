@@ -2,6 +2,7 @@
 import httpx
 import logging
 from typing import Dict, Any, Optional
+from app.core.errors.http_errors import HTTPError
 
 async def send_http_request(
     method: str,
@@ -12,7 +13,7 @@ async def send_http_request(
     json: Optional[Any] = None,
     timeout: Optional[float] = None,
     **kwargs: Dict[str, Any]
-):
+) -> httpx.Response:
     """
     发送 HTTP 请求
 
@@ -27,11 +28,10 @@ async def send_http_request(
         **kwargs: 其他请求参数
 
     Returns:
-        dict: HTTP 响应字典， 包括状态码、头信息和内容
+        httpx.Response: HTTP 响应对象
 
     Raises:
-        httpx.RequestError: HTTP 请求错误
-        Exception: 其他错误
+        HTTPError: HTTP 请求错误
     """
 
     async with httpx.AsyncClient(timeout=timeout) as client:
@@ -51,15 +51,18 @@ async def send_http_request(
             logging.debug(f"Response headers: {response.headers}")
             logging.debug(f"Response body: {response.text}")
             logging.info(f"Received response: {response.status_code}")
-            return {
-                'status_code': response.status_code,
-                'headers': response.headers,
-                'content': response.text,
-                'encoding': response.encoding
-            } 
+
+            response.raise_for_status()  # 如果状态码 >= 400 则抛出异常
+            return response
+
+        except httpx.HTTPStatusError as exc:
+            logging.error(f"HTTP error occurred while requesting {exc.request.url!r}: {exc}")
+            raise HTTPError(status_code=exc.response.status_code, detail=exc.response.text)
+
         except httpx.RequestError as exc:
             logging.error(f"An error occurred while requesting {exc.request.url!r}: {exc}")
-            raise
+            raise HTTPError(status_code=500, detail=str(exc))
+
         except Exception as e:
             logging.error(f"An unexpected error occurred: {e}")
-            raise
+            raise HTTPError(status_code=500, detail=str(e))
