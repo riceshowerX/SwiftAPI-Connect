@@ -5,9 +5,13 @@ import json
 import logging
 import time
 import chardet
+import os
 
 from typing import Dict, Optional, Union
 from pydantic import BaseModel, AnyUrl, Field, field_validator
+from requests.exceptions import RequestException
+
+from ..app.utils.crypto import encrypt_data
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +31,10 @@ COMMON_ENCODINGS = [
     "euc-kr",
 ]
 
+# 从环境变量获取加密密钥
+ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
+if not ENCRYPTION_KEY:
+    raise ValueError("ENCRYPTION_KEY environment variable is not set.")
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -41,7 +49,7 @@ class HTTPRequestSchema(BaseModel):
     headers: Optional[Dict[str, str]] = Field(
         {}, description="请求头", example={"User-Agent": "Mozilla/5.0"}
     )
-    data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
+    data: Optional[str] = Field(None, description="请求体数据")
     json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
     encoding: Optional[str] = Field(
         None, description="请求体的编码", example="utf-8"
@@ -97,6 +105,12 @@ def send_request(method, url, params, headers, data, json_data, encoding):
             time.sleep(0.1)
             progress_bar.progress(i * 10)
 
+        # 加密请求数据
+        if data:
+            data = encrypt_data(data.encode(), ENCRYPTION_KEY).decode()
+        if json_data:
+            json_data = json.loads(encrypt_data(json.dumps(json_data).encode(), ENCRYPTION_KEY).decode())
+
         response = requests.request(
             method, url, params=params, headers=headers, data=data, json=json_data
         )
@@ -105,7 +119,7 @@ def send_request(method, url, params, headers, data, json_data, encoding):
         progress_bar.progress(100)
 
         return response
-    except Exception as e:
+    except RequestException as e:
         logging.error(f"Request failed: {e}")
         raise
 
@@ -200,8 +214,10 @@ def run_ui():
             st.write("响应内容:")
             st.text(response_text)
 
-        except Exception as e:
+        except RequestException as e:
             st.error(f"请求失败: {str(e)}")
+        except ValueError as e:
+            st.error(f"验证失败: {str(e)}")
 
 
 if __name__ == "__main__":

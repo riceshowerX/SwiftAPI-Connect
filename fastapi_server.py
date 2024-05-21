@@ -7,6 +7,7 @@ import logging
 import uvicorn
 import os
 from dotenv import load_dotenv
+from loguru import logger
 
 # 加载配置文件
 load_dotenv()
@@ -16,55 +17,37 @@ SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
 SERVER_PORT = int(os.getenv("SERVER_PORT", 8015))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:8501").split(',')
 API_KEY = os.getenv("API_KEY")
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "").encode()  # 读取加密密钥
 
-# 设置日志级别为 INFO
-logging.basicConfig(level=logging.INFO)
+# 设置日志
+logger.add(
+    "app.log",
+    format="{time} {level} {message}",
+    level="DEBUG",  # 设置日志级别为 DEBUG
+    rotation="500 MB",
+    compression="zip",
+)
 
 # 添加 API 密钥验证
 async def api_key_auth(request: Request, call_next):
     api_key = request.headers.get("x-api-key")
     if api_key is None or api_key != API_KEY:
+        logger.warning(f"Invalid API key: {api_key}")  # 记录警告信息
         raise HTTPException(status_code=401, detail="Invalid API key")
     response = await call_next(request)
     return response
 
 def run_fastapi():
     try:
-        logging.info("Starting FastAPI server...")
+        logger.info("Starting FastAPI server...")
         uvicorn.run(
             fastapi_app,
             host=SERVER_HOST,
             port=SERVER_PORT,
             reload=True,  # 开启自动重新加载
-            log_config={  # 配置日志记录
-                "version": 1,
-                "disable_existing_loggers": False,
-                "formatters": {
-                    "default": {
-                        "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
-                    }
-                },
-                "handlers": {
-                    "console": {
-                        "class": "logging.StreamHandler",
-                        "formatter": "default",
-                        "level": "DEBUG",
-                    }
-                },
-                "loggers": {
-                    "uvicorn.access": {
-                        "handlers": ["console"],
-                        "level": "INFO",
-                    },
-                    "uvicorn.error": {
-                        "handlers": ["console"],
-                        "level": "INFO",
-                    }
-                },
-            },
         )
     except Exception as e:
-        logging.error(f"An error occurred while running the FastAPI server: {e}")
+        logger.error(f"An error occurred while running the FastAPI server: {e}")
 
 
 if __name__ == "__main__":

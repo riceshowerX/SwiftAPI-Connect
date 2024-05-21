@@ -12,6 +12,7 @@ SwiftAPI-Connect/
 │   │   ├── request_helper.py # 请求辅助工具
 │   │   ├── encoding_helper.py # 编码辅助工具
 │   │   ├── process_monitor.py # 进程监控工具
+│   │   └── crypto.py        # 加密工具
 │   ├── schemas/           # 模式定义模块
 │   │   ├── __init__.py    # 初始化模式模块
 │   │   ├── request_schema.py  # 请求模式定义
