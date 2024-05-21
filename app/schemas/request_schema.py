@@ -1,7 +1,6 @@
 # request_schema.py
 from typing import Dict, Optional, Union
-
-from pydantic import BaseModel, AnyUrl, Field
+from pydantic import BaseModel, AnyUrl, Field, validator
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -21,7 +20,14 @@ class HTTPRequestSchema(BaseModel):
     headers: Optional[Dict[str, str]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
     data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
     json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
-    encoding: Optional[str] = Field(None, description="请求体的编码")
+    encoding: Optional[str] = Field(None, description="请求体的编码", example="utf-8")
+
+    @validator('method')
+    def method_must_be_valid(cls, value):
+        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
+        if value.upper() not in valid_methods:
+            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
+        return value.upper()  # 统一转换为大写
 
     class Config:
         arbitrary_types_allowed = True

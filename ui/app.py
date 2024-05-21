@@ -3,12 +3,27 @@ import streamlit as st
 import requests
 import json
 import logging
-from pydantic import BaseModel, AnyUrl, Field
+from pydantic import BaseModel, AnyUrl, Field, validator, field_validator
 from typing import Dict, Optional, Union
 import time
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
+
+# 复制 COMMON_ENCODINGS 变量
+COMMON_ENCODINGS = [
+    "ascii",
+    "utf-8",
+    "utf-16",
+    "utf-32",
+    "latin-1",
+    "gbk",
+    "gb18030",
+    "big5",
+    "shift-jis",
+    "euc-jp",
+    "euc-kr",
+]
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -20,7 +35,14 @@ class HTTPRequestSchema(BaseModel):
     headers: Optional[Dict[str, str]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
     data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
     json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
-    encoding: Optional[str] = Field(None, description="请求体的编码")
+    encoding: Optional[str] = Field(None, description="请求体的编码", example="utf-8")
+
+    @field_validator('method')  # 使用 @field_validator
+    def method_must_be_valid(cls, value):
+        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
+        if value.upper() not in valid_methods:
+            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
+        return value.upper()  # 统一转换为大写
 
 def get_params(param_type, key_prefix, value_prefix):
     params = {}
@@ -79,10 +101,10 @@ def run_ui():
     st.title("HTTP 请求模拟工具")
 
     # 选择 HTTP 方法
-    method = st.selectbox("选择 HTTP 方法", ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE"])
+    method = st.selectbox("选择 HTTP 方法", ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE"], key="method")
 
     # 输入 URL
-    url = st.text_input("输入 URL")
+    url = st.text_input("输入 URL", key="url")
 
     # 参数输入区域
     st.header("参数")
@@ -107,7 +129,7 @@ def run_ui():
     data = st.text_area("输入 Data", key="data_info")
 
     # 编码选择
-    encoding = st.selectbox("选择编码", ["UTF-8", "GBK", "GB2312", "GB18030"])
+    encoding = st.selectbox("选择编码", COMMON_ENCODINGS, key="encoding")
 
     # 发送请求按钮
     if st.button("发送请求"):
