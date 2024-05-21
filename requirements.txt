@@ -4,4 +4,3 @@ pydantic
 httpx
 streamlit
 requests
-cryptography

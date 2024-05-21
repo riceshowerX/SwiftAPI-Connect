@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # 添加 CORS 中间件 (全局配置)
     fastapi_app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # 允许所有源
+        allow_origins=["http://localhost:8501"],  # 允许访问的域名
         allow_credentials=True,
         allow_methods=["*"],  # 允许所有方法
         allow_headers=["*"],

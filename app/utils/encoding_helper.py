@@ -1,4 +1,4 @@
-# app/utils/encoding_helper.py
+# encoding_helper.py
 import logging
 
 DEFAULT_ENCODING = "utf-8"  # 设置默认编码

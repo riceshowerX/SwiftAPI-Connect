@@ -1,4 +1,4 @@
-# ui/app.py
+# app.py
 import streamlit as st
 import requests
 import json
@@ -6,7 +6,6 @@ import logging
 from pydantic import BaseModel, AnyUrl, Field
 from typing import Dict, Optional, Union
 import time
-from app.security.encryption_helper import encrypt_request, decrypt_request 
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -113,13 +112,7 @@ def run_ui():
     # 发送请求按钮
     if st.button("发送请求"):
         try:
-            # 加密请求数据
-            data = encryption_helper.encrypt_request(data) if data else data
-            
             response = send_request(method, url, query_params, headers, data, json_data, encoding)
-
-            # 解密响应数据
-            response.text = encryption_helper.decrypt_request(response.text) if response.text else response.text
 
             # 展示结果
             st.header("请求结果")
