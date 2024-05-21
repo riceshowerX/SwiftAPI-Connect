@@ -1,4 +1,9 @@
 # app.py
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from ui.components.request_form import get_params
 import streamlit as st
 import requests
 import json
@@ -12,9 +17,6 @@ from pydantic import BaseModel, AnyUrl, Field, field_validator
 from ui.components.request_form import get_params 
 from ui.components.progress_bar import show_progress_bar
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ui.components.request_form import get_params
 
