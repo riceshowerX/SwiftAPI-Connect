@@ -29,5 +29,11 @@ class HTTPRequestSchema(BaseModel):
             raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
         return value.upper()  # 统一转换为大写
 
+    @validator('url')
+    def validate_url(cls, value):
+        if not value.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return value
+
     class Config:
         arbitrary_types_allowed = True

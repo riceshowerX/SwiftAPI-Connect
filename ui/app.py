@@ -6,6 +6,7 @@ import logging
 from pydantic import BaseModel, AnyUrl, Field, validator, field_validator
 from typing import Dict, Optional, Union
 import time
+import chardet
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -67,27 +68,7 @@ def send_request(method, url, params, headers, data, json_data, encoding):
             time.sleep(0.1)
             progress_bar.progress(i * 10)
 
-        response = None
-        if method == "GET":
-            response = requests.get(url, params=params, headers=headers)
-        elif method == "POST":
-            if json_data:
-                response = requests.post(url, json=json_data, headers=headers)
-            else:
-                response = requests.post(url, data=data, headers=headers)
-        elif method == "PUT":
-            if json_data:
-                response = requests.put(url, json=json_data, headers=headers)
-            else:
-                response = requests.put(url, data=data, headers=headers)
-        elif method == "DELETE":
-            response = requests.delete(url, headers=headers)
-        elif method == "HEAD":
-            response = requests.head(url, headers=headers)
-        elif method == "OPTIONS":
-            response = requests.options(url, headers=headers)
-        elif method == "TRACE":
-            response = requests.request("TRACE", url, headers=headers)
+        response = requests.request(method, url, params=params, headers=headers, data=data, json=json_data)
 
         # 设置进度条为 100%
         progress_bar.progress(100)
@@ -123,6 +104,7 @@ def run_ui():
     # Header 输入区域
     st.header("Header")
     headers = get_params("Header", "header_key", "header_value")
+    headers['x-api-key'] = st.text_input("输入 API Key", key="api_key")
 
     # Data 输入区域
     st.header("Data")
@@ -134,7 +116,32 @@ def run_ui():
     # 发送请求按钮
     if st.button("发送请求"):
         try:
-            response = send_request(method, url, query_params, headers, data, json_data, encoding)
+            # 使用 Pydantic 模型验证请求参数
+            request_data = HTTPRequestSchema(
+                method=method,
+                url=url,
+                params=query_params,
+                headers=headers,
+                data=data,
+                json_data=json_data,
+                encoding=encoding
+            )
+            logging.info(f"Request data: {request_data}")
+
+            response = send_request(
+                method=request_data.method,
+                url=request_data.url,
+                params=request_data.params,
+                headers=request_data.headers,
+                data=request_data.data,
+                json_data=request_data.json_data,
+                encoding=request_data.encoding
+            )
+
+            # 自动检测响应编码
+            detected_encoding = chardet.detect(response.content)['encoding']
+            logging.info(f"Detected response encoding: {detected_encoding}")
+            response_text = response.content.decode(detected_encoding, errors='replace')
 
             # 展示结果
             st.header("请求结果")
@@ -143,7 +150,7 @@ def run_ui():
             st.write("响应 Header:")
             st.json(dict(response.headers))
             st.write("响应内容:")
-            st.text(response.text)
+            st.text(response_text)
 
         except Exception as e:
             st.error(f"请求失败: {str(e)}")

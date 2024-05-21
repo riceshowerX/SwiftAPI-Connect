@@ -1,5 +1,6 @@
 # encoding_helper.py
 import logging
+import chardet  # 添加 chardet 库
 
 DEFAULT_ENCODING = "utf-8"  # 设置默认编码
 
@@ -26,7 +27,14 @@ def decode_content(content: bytes, encoding: str = None) -> str:
     :return: 解码后的字符串，如果解码失败，则返回原始的字节内容
     """
 
-    encoding = encoding or DEFAULT_ENCODING  # 使用默认编码
+    if encoding is None:
+        # 使用 chardet 自动检测编码
+        detected_encoding = chardet.detect(content)['encoding']
+        if detected_encoding is not None:
+            encoding = detected_encoding
+        else:
+            encoding = DEFAULT_ENCODING
+
     try:
         logging.debug(f"Attempting to decode content with encoding: {encoding}")
         return content.decode(encoding)

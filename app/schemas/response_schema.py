@@ -44,3 +44,17 @@ class HTTPResponseSchema(BaseModel):
             "encoding": self.encoding,
             "content_type": self.content_type,
         }
+
+    @classmethod
+    def from_attributes(cls, response: httpx.Response):
+        """
+        从 httpx.Response 对象创建 HTTPResponseSchema 对象
+        """
+        return cls(
+            status_code=response.status_code,
+            text=response.text,
+            headers=response.headers,
+            elapsed=response.elapsed.total_seconds(),
+            encoding=response.encoding,
+            content_type=response.headers.get('content-type'),
+        )

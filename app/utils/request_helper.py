@@ -10,6 +10,7 @@ async def send_http_request(
     params: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
     json: Optional[Any] = None,
+    timeout: Optional[float] = None,
     **kwargs: Dict[str, Any]
 ):
     """
@@ -22,17 +23,18 @@ async def send_http_request(
         params: 请求参数
         data: 请求体（表单数据）
         json: 请求体（JSON 数据）
+        timeout: 请求超时时间 (秒)
         **kwargs: 其他请求参数
 
     Returns:
-        httpx.Response: HTTP 响应对象
+        dict: HTTP 响应字典， 包括状态码、头信息和内容
 
     Raises:
         httpx.RequestError: HTTP 请求错误
         Exception: 其他错误
     """
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=timeout) as client:
         try:
             logging.info(f"Sending {method} request to {url} with params: {kwargs}")
             response = await client.request(
@@ -44,12 +46,17 @@ async def send_http_request(
                 json=json,
                 **kwargs
             )
-            logging.debug(f"Received response: {response.status_code}")
             logging.debug(f"Request headers: {response.request.headers}")
             logging.debug(f"Request body: {response.request.content}")
             logging.debug(f"Response headers: {response.headers}")
             logging.debug(f"Response body: {response.text}")
-            return response
+            logging.info(f"Received response: {response.status_code}")
+            return {
+                'status_code': response.status_code,
+                'headers': response.headers,
+                'content': response.text,
+                'encoding': response.encoding
+            } 
         except httpx.RequestError as exc:
             logging.error(f"An error occurred while requesting {exc.request.url!r}: {exc}")
             raise
