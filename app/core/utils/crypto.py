@@ -1,40 +1,28 @@
 # crypto.py
 from cryptography.fernet import Fernet
-import base64
-import logging
 import os
+from dotenv import load_dotenv
 
-# 设置日志
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s")
-logger = logging.getLogger(__name__)
+# 加载环境变量
+load_dotenv()
 
-# 从环境变量获取密钥
-ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
-if not ENCRYPTION_KEY:
-    raise ValueError("ENCRYPTION_KEY environment variable is not set.")
+# 从环境变量中获取加密密钥
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 
-def generate_key():
-    """生成密钥"""
-    key = Fernet.generate_key()
-    return key
+# 如果没有设置加密密钥，则生成一个新的密钥
+if ENCRYPTION_KEY is None:
+    ENCRYPTION_KEY = Fernet.generate_key()
+    with open(".env", "a") as f:
+        f.write(f"\nENCRYPTION_KEY={ENCRYPTION_KEY.decode()}\n")
 
-def encrypt_data(data: bytes) -> str:
+# 创建 Fernet 对象
+fernet = Fernet(ENCRYPTION_KEY)
+
+def encrypt_data(data: str) -> str:
     """加密数据"""
-    try:
-        f = Fernet(ENCRYPTION_KEY)
-        encrypted_data = f.encrypt(data)
-        return base64.b64encode(encrypted_data).decode()
-    except Exception as e:
-        logger.error(f"Error encrypting data: {e}")
-        raise
+    return fernet.encrypt(data.encode()).decode()
 
-def decrypt_data(encrypted_data: str) -> bytes:
+
+def decrypt_data(data: str) -> str:
     """解密数据"""
-    try:
-        f = Fernet(ENCRYPTION_KEY)
-        encrypted_data = base64.b64decode(encrypted_data.encode())
-        decrypted_data = f.decrypt(encrypted_data)
-        return decrypted_data
-    except Exception as e:
-        logger.error(f"Error decrypting data: {e}")
-        raise
+    return fernet.decrypt(data.encode()).decode()

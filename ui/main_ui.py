@@ -3,7 +3,6 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ui.components.request_form import get_params
 import streamlit as st
 import requests
 import json
@@ -13,12 +12,10 @@ import chardet
 
 from typing import Dict, Optional, Union
 from pydantic import BaseModel, AnyUrl, Field, field_validator
-
-from ui.components.request_form import get_params 
-from ui.components.progress_bar import show_progress_bar
-
+from cryptography.fernet import Fernet
 
 from ui.components.request_form import get_params
+from ui.components.progress_bar import show_progress_bar
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -78,11 +75,17 @@ class HTTPRequestSchema(BaseModel):
         return value.upper()  # 统一转换为大写
 
 
-def send_request(method, url, params, headers, data, json_data, encoding):
+def send_request(method, url, params, headers, data, json_data, encoding, encryption_enabled):
     try:
         # 使用进度条组件
         show_progress_bar()
-        
+
+        # 添加加密头信息
+        if encryption_enabled:
+            headers["Encryption"] = "True"
+        else:
+            headers["Encryption"] = "False"
+
         response = requests.request(
             method, url, params=params, headers=headers, data=data, json=json_data
         )
@@ -92,9 +95,18 @@ def send_request(method, url, params, headers, data, json_data, encoding):
         logging.error(f"Request failed: {e}")
         raise
 
+
 def update_api_key():
     """更新 API Key 到 session_state"""
     st.session_state.api_key = st.session_state.api_key_input
+
+
+def generate_encryption_key():
+    """生成新的加密密钥并保存到 session_state"""
+    key = Fernet.generate_key()
+    st.session_state.encryption_key = key.decode()
+    st.success("新的加密密钥已生成！")
+
 
 def run_ui():
     st.title("HTTP 请求模拟工具")
@@ -127,7 +139,7 @@ def run_ui():
     st.header("Header")
     headers = get_params("Header", "header_key", "header_value")
 
-    # 使用secrets存储API Key
+    # 使用 secrets 存储 API Key
     if "api_key" not in st.session_state:
         st.session_state.api_key = ""
     st.session_state.api_key_input = st.text_input(
@@ -141,6 +153,19 @@ def run_ui():
 
     # 编码选择
     encoding = st.selectbox("选择编码", COMMON_ENCODINGS, key="encoding")
+
+    # 加密选项区域
+    st.header("加密选项")
+    encryption_enabled = st.checkbox("开启加密", key="encryption_enabled")
+
+    # 自动生成密钥按钮
+    if st.button("生成新的加密密钥"):
+        generate_encryption_key()
+
+    # 显示加密密钥
+    if "encryption_key" in st.session_state:
+        st.write("**加密密钥:**", st.session_state.encryption_key)
+        st.info("请妥善保管此密钥，不要将其分享给他人！")
 
     # 发送请求按钮
     if st.button("发送请求"):
@@ -165,6 +190,7 @@ def run_ui():
                 data=request_data.data,
                 json_data=request_data.json_data,
                 encoding=request_data.encoding,
+                encryption_enabled=encryption_enabled,
             )
 
             # 自动检测响应编码
