@@ -3,12 +3,28 @@ import streamlit as st
 import requests
 import json
 import logging
-from pydantic import BaseModel, AnyUrl, Field
+from pydantic import BaseModel, AnyUrl, Field, validator, field_validator
 from typing import Dict, Optional, Union
 import time
+import chardet
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
+
+# 复制 COMMON_ENCODINGS 变量
+COMMON_ENCODINGS = [
+    "ascii",
+    "utf-8",
+    "utf-16",
+    "utf-32",
+    "latin-1",
+    "gbk",
+    "gb18030",
+    "big5",
+    "shift-jis",
+    "euc-jp",
+    "euc-kr",
+]
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -20,7 +36,14 @@ class HTTPRequestSchema(BaseModel):
     headers: Optional[Dict[str, str]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
     data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
     json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
-    encoding: Optional[str] = Field(None, description="请求体的编码")
+    encoding: Optional[str] = Field(None, description="请求体的编码", example="utf-8")
+
+    @field_validator('method')  # 使用 @field_validator
+    def method_must_be_valid(cls, value):
+        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
+        if value.upper() not in valid_methods:
+            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
+        return value.upper()  # 统一转换为大写
 
 def get_params(param_type, key_prefix, value_prefix):
     params = {}
@@ -45,27 +68,7 @@ def send_request(method, url, params, headers, data, json_data, encoding):
             time.sleep(0.1)
             progress_bar.progress(i * 10)
 
-        response = None
-        if method == "GET":
-            response = requests.get(url, params=params, headers=headers)
-        elif method == "POST":
-            if json_data:
-                response = requests.post(url, json=json_data, headers=headers)
-            else:
-                response = requests.post(url, data=data, headers=headers)
-        elif method == "PUT":
-            if json_data:
-                response = requests.put(url, json=json_data, headers=headers)
-            else:
-                response = requests.put(url, data=data, headers=headers)
-        elif method == "DELETE":
-            response = requests.delete(url, headers=headers)
-        elif method == "HEAD":
-            response = requests.head(url, headers=headers)
-        elif method == "OPTIONS":
-            response = requests.options(url, headers=headers)
-        elif method == "TRACE":
-            response = requests.request("TRACE", url, headers=headers)
+        response = requests.request(method, url, params=params, headers=headers, data=data, json=json_data)
 
         # 设置进度条为 100%
         progress_bar.progress(100)
@@ -79,10 +82,10 @@ def run_ui():
     st.title("HTTP 请求模拟工具")
 
     # 选择 HTTP 方法
-    method = st.selectbox("选择 HTTP 方法", ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE"])
+    method = st.selectbox("选择 HTTP 方法", ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE"], key="method")
 
     # 输入 URL
-    url = st.text_input("输入 URL")
+    url = st.text_input("输入 URL", key="url")
 
     # 参数输入区域
     st.header("参数")
@@ -101,18 +104,44 @@ def run_ui():
     # Header 输入区域
     st.header("Header")
     headers = get_params("Header", "header_key", "header_value")
+    headers['x-api-key'] = st.text_input("输入 API Key", key="api_key")
 
     # Data 输入区域
     st.header("Data")
     data = st.text_area("输入 Data", key="data_info")
 
     # 编码选择
-    encoding = st.selectbox("选择编码", ["UTF-8", "GBK", "GB2312", "GB18030"])
+    encoding = st.selectbox("选择编码", COMMON_ENCODINGS, key="encoding")
 
     # 发送请求按钮
     if st.button("发送请求"):
         try:
-            response = send_request(method, url, query_params, headers, data, json_data, encoding)
+            # 使用 Pydantic 模型验证请求参数
+            request_data = HTTPRequestSchema(
+                method=method,
+                url=url,
+                params=query_params,
+                headers=headers,
+                data=data,
+                json_data=json_data,
+                encoding=encoding
+            )
+            logging.info(f"Request data: {request_data}")
+
+            response = send_request(
+                method=request_data.method,
+                url=request_data.url,
+                params=request_data.params,
+                headers=request_data.headers,
+                data=request_data.data,
+                json_data=request_data.json_data,
+                encoding=request_data.encoding
+            )
+
+            # 自动检测响应编码
+            detected_encoding = chardet.detect(response.content)['encoding']
+            logging.info(f"Detected response encoding: {detected_encoding}")
+            response_text = response.content.decode(detected_encoding, errors='replace')
 
             # 展示结果
             st.header("请求结果")
@@ -121,7 +150,7 @@ def run_ui():
             st.write("响应 Header:")
             st.json(dict(response.headers))
             st.write("响应内容:")
-            st.text(response.text)
+            st.text(response_text)
 
         except Exception as e:
             st.error(f"请求失败: {str(e)}")
