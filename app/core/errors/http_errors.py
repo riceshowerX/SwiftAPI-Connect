@@ -1,15 +1,15 @@
 # http_errors.py
 from fastapi import HTTPException, JSONResponse 
-class HTTPError(Exception):
+
+class HTTPError(HTTPException):
     """自定义 HTTP 异常"""
 
     def __init__(self, status_code: int, detail: str):
-        self.status_code = status_code
-        self.detail = detail
+        super().__init__(status_code=status_code, detail=detail)
 
-def http_exception_handler(request, exc: HTTPException):
+def http_error_handler(request, exc: Exception):
     """全局 HTTP 异常处理"""
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
+        status_code=500 if not isinstance(exc, HTTPException) else exc.status_code,
+        content={"detail": exc.detail if isinstance(exc, HTTPException) else "Internal Server Error"},
     )

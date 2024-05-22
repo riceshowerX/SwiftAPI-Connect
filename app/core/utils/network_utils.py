@@ -1,8 +1,9 @@
-#  request_helper.py
+#  network_utils.py
 import httpx
 import logging
 from typing import Dict, Any, Optional
 from app.core.errors.http_errors import HTTPError
+from app.core.utils.crypto_utils import encrypt_data, decrypt_data
 
 async def send_http_request(
     method: str,
@@ -12,6 +13,7 @@ async def send_http_request(
     data: Optional[Any] = None,
     json: Optional[Any] = None,
     timeout: Optional[float] = None,
+    encryption_enabled=False,
     **kwargs: Dict[str, Any]
 ) -> httpx.Response:
     """
@@ -36,7 +38,10 @@ async def send_http_request(
 
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
-            logging.info(f"Sending {method} request to {url} with params: {kwargs}")
+            logging.info(f"Sending {method} request to {url}")
+            if encryption_enabled:
+                data = encrypt_data(data.encode()) if isinstance(data, str) else data
+                json = encrypt_data(json.encode()) if isinstance(json, str) else json
             response = await client.request(
                 method=method, 
                 url=url, 
@@ -57,12 +62,12 @@ async def send_http_request(
 
         except httpx.HTTPStatusError as exc:
             logging.error(f"HTTP error occurred while requesting {exc.request.url!r}: {exc}")
-            raise HTTPError(status_code=exc.response.status_code, detail=exc.response.text)
+            raise HTTPError(status_code=exc.response.status_code, detail=exc.response.text) from exc
 
         except httpx.RequestError as exc:
             logging.error(f"An error occurred while requesting {exc.request.url!r}: {exc}")
-            raise HTTPError(status_code=500, detail=str(exc))
+            raise HTTPError(status_code=500, detail=str(exc)) from exc
 
         except Exception as e:
             logging.error(f"An unexpected error occurred: {e}")
-            raise HTTPError(status_code=500, detail=str(e))
+            raise HTTPError(status_code=500, detail=str(e)) from e
