@@ -1,10 +1,9 @@
 # fastapi_server.py
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.main import app as fastapi_app
-from app.core.errors.http_errors import http_error_handler
+from app.core.errors.http_errors import http_exception_handler
 from app.core.config import settings 
 import logging
 import uvicorn
@@ -63,6 +62,7 @@ def run_fastapi():
     except Exception as e:
         logging.error(f"An error occurred while running the FastAPI server: {e}")
 
+
 if __name__ == "__main__":
     # 添加 CORS 中间件 (全局配置)
     fastapi_app.add_middleware(
@@ -77,6 +77,6 @@ if __name__ == "__main__":
     fastapi_app.middleware("http")(api_key_auth)
 
     # 添加全局异常处理
-    fastapi_app.add_exception_handler(Exception, http_error_handler)
+    fastapi_app.add_exception_handler(HTTPException, http_exception_handler)
     
     run_fastapi()

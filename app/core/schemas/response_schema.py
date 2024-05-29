@@ -17,7 +17,7 @@ class HTTPResponseSchema(BaseModel):
     """
 
     status_code: int = Field(..., description="响应状态码", example=200)
-    text: str = Field(..., description="响应正文内容")
+    text: Optional[Union[str, bytes]] = Field(None, description="响应正文内容")
     headers: Dict[str, Union[str, List[str]]] = Field(..., description="响应头信息")
     elapsed: float = Field(..., description="响应时间（秒）", example=0.5)
     encoding: Optional[str] = Field("utf-8", description="响应正文的编码格式", example="utf-8")
@@ -36,20 +36,25 @@ class HTTPResponseSchema(BaseModel):
         return value
 
     def to_dict(self):
-        return self.dict()
+        return {
+            "status_code": self.status_code,
+            "text": self.text,
+            "headers": self.headers,
+            "elapsed": self.elapsed,
+            "encoding": self.encoding,
+            "content_type": self.content_type,
+        }
 
     @classmethod
     def from_attributes(cls, response: httpx.Response):
         """
         从 httpx.Response 对象创建 HTTPResponseSchema 对象
         """
-        return cls.parse_obj(
-            {
-                "status_code": response.status_code,
-                "text": response.text,
-                "headers": response.headers,
-                "elapsed": response.elapsed.total_seconds(),
-                "encoding": response.encoding,
-                "content_type": response.headers.get('content-type'),
-            }
+        return cls(
+            status_code=response.status_code,
+            text=response.text,
+            headers=response.headers,
+            elapsed=response.elapsed.total_seconds(),
+            encoding=response.encoding,
+            content_type=response.headers.get('content-type'),
         )
