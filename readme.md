@@ -59,13 +59,17 @@ SwiftAPI-Connect 是一个基于 FastAPI 的强大 API 连接器，旨在模拟 
    在项目根目录下创建一个名为 `.env` 的文件，并添加以下内容：
 
    ```env
+   PYTHONPATH=D:\github\SwiftAPI-Connect
    SERVER_HOST=127.0.0.1
    SERVER_PORT=8015
    CORS_ORIGINS=http://localhost:8501
    API_KEY=your_super_secret_key
+
    ```
 
    请将 `your_super_secret_key` 替换为您的 API 密钥。您无需手动设置加密密钥，UI 界面会自动生成一个新的密钥。
+
+   **注意：** 确保 `.env` 文件的路径配置正确，否则应用程序无法运行。
 
 4. **运行应用程序：**
 
