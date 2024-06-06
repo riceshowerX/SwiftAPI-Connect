@@ -9,3 +9,4 @@ chardet
 python-dotenv
 psutil
 cryptography
+ui

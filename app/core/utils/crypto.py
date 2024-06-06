@@ -1,28 +1,31 @@
 # crypto.py
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
+from typing import Union
 import os
-from dotenv import load_dotenv
+import logging
 
-# 加载环境变量
-load_dotenv()
-
-# 从环境变量中获取加密密钥
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 
-# 如果没有设置加密密钥，则生成一个新的密钥
 if ENCRYPTION_KEY is None:
-    ENCRYPTION_KEY = Fernet.generate_key()
-    with open(".env", "a") as f:
-        f.write(f"\nENCRYPTION_KEY={ENCRYPTION_KEY.decode()}\n")
+    raise ValueError("ENCRYPTION_KEY environment variable is not set.")
 
-# 创建 Fernet 对象
 fernet = Fernet(ENCRYPTION_KEY)
 
 def encrypt_data(data: str) -> str:
     """加密数据"""
-    return fernet.encrypt(data.encode()).decode()
+    try:
+        return fernet.encrypt(data.encode()).decode()
+    except Exception as e:
+        logging.error(f"Encryption failed: {e}")
+        raise  
 
-
-def decrypt_data(data: str) -> str:
+def decrypt_data(data: str) -> Union[str, None]:
     """解密数据"""
-    return fernet.decrypt(data.encode()).decode()
+    try:
+        return fernet.decrypt(data.encode()).decode()
+    except InvalidToken:
+        logging.error("Decryption failed: Invalid token.")
+        return None 
+    except Exception as e:
+        logging.error(f"Decryption failed: {e}")
+        raise 
