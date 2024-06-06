@@ -12,10 +12,14 @@ import json
 import logging
 import time
 import chardet
+import asyncio
 
 from typing import Dict, Optional, Union
 from pydantic import BaseModel, AnyUrl, Field, field_validator
 from cryptography.fernet import Fernet
+
+from app.core.services.mock_data_service import MockDataService
+from app.core.services.task_scheduler import TaskScheduler
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -107,8 +111,58 @@ def generate_encryption_key():
     st.session_state.encryption_key = key.decode()
     st.success("新的加密密钥已生成！")
 
+# 初始化服务
+mock_data_service = MockDataService()
+task_scheduler = TaskScheduler()
+
 
 def run_ui():
+    st.title("HTTP 请求模拟工具")
+
+    # --- Mock 数据管理 ---
+    st.header("Mock 数据管理")
+    with st.expander("创建 Mock 数据"):
+        key = st.text_input("Key", key="mock_data_key")
+        data = st.text_area("Data (JSON 格式)", key="mock_data_value")
+        if st.button("创建", key="create_mock_data"):
+            try:
+                mock_data_service.create_mock_data(key, json.loads(data))
+                st.success("Mock 数据创建成功!")
+            except json.JSONDecodeError:
+                st.error("数据格式错误，请检查 JSON 格式!")
+
+    with st.expander("获取 Mock 数据"):
+        key = st.text_input("Key", key="get_mock_data_key")
+        if st.button("获取", key="get_mock_data"):
+            data = mock_data_service.get_mock_data(key)
+            if data:
+                st.json(data)
+            else:
+                st.warning("找不到该 Key 对应的 Mock 数据")
+
+    # --- 其他 Mock 数据管理功能，例如更新和删除 ---
+
+    # --- 任务调度 ---
+    st.header("任务调度")
+    with st.expander("添加定时任务"):
+        url = st.text_input("请求 URL", key="task_url")
+        interval = st.number_input("间隔时间 (秒)", min_value=1, key="task_interval")
+        if st.button("添加任务", key="add_task"):
+            async def send_request_task():
+                while True:
+                    try:
+                        response = requests.get(url)
+                        logging.info(f"定时任务执行成功，状态码: {response.status_code}")
+                    except Exception as e:
+                        logging.error(f"定时任务执行失败: {e}")
+                    await asyncio.sleep(interval)
+            task_scheduler.add_task(send_request_task())
+            st.success("定时任务已添加")
+
+    if st.button("启动任务调度器"):
+        asyncio.run(task_scheduler.run_tasks())
+
+    # --- HTTP 请求模拟工具 ---
     st.title("HTTP 请求模拟工具")
 
     # 选择 HTTP 方法
