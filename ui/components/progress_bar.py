@@ -2,14 +2,19 @@
 import streamlit as st
 import time
 
-def show_progress_bar():
-    """显示进度条"""
+def show_progress_bar(get_progress=lambda: 100):
+    """显示进度条
+    
+    Args:
+        get_progress: 一个回调函数，返回当前操作的进度 (0-100).
+    """
     progress_bar = st.progress(0)
 
-    # 模拟请求处理时间
-    for i in range(10):
-        time.sleep(0.1)
-        progress_bar.progress(i * 10)
+    while True:
+        progress = get_progress()
+        progress_bar.progress(progress)
 
-    # 设置进度条为 100%
-    progress_bar.progress(100)
+        if progress >= 100:
+            break
+        
+        time.sleep(0.1)  # 调整更新频率

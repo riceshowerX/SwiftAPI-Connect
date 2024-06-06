@@ -1,7 +1,10 @@
-# app.py
+# main_ui.py
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from ui.components.request_form import get_params
+from ui.components.progress_bar import show_progress_bar
 
 import streamlit as st
 import requests
@@ -13,9 +16,6 @@ import chardet
 from typing import Dict, Optional, Union
 from pydantic import BaseModel, AnyUrl, Field, field_validator
 from cryptography.fernet import Fernet
-
-from ui.components.request_form import get_params
-from ui.components.progress_bar import show_progress_bar
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)

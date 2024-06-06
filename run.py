@@ -4,31 +4,37 @@ from fastapi_server import run_fastapi
 from ui.main_ui import run_ui
 from app.core.utils.process_monitor import ProcessMonitor
 import logging
+import signal
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
 
+def signal_handler(sig, frame):
+    logging.info("Stopping SwiftAPI-Connect...")
+    exit(0)
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     try:
-        # 创建进程池
         pool = Pool(processes=2)
 
-        # 使用进程池运行 FastAPI 服务器和 Streamlit UI 应用
-        fastapi_process = pool.apply(run_fastapi)
-        streamlit_process = pool.apply(run_ui)
+        fastapi_process = pool.apply_async(run_fastapi)
+        streamlit_process = pool.apply_async(run_ui)
 
-        logging.info(f"Starting FastAPI process with ID: {fastapi_process}")
-        logging.info(f"Starting Streamlit process with ID: {streamlit_process}")
+        logging.info(f"Starting FastAPI process with PID: {fastapi_process.pid}")
+        logging.info(f"Starting Streamlit process with PID: {streamlit_process.pid}")
 
-        # 创建两个监控线程
-        fastapi_monitor = Process(target=ProcessMonitor(fastapi_process, "FastAPI").monitor)
-        streamlit_monitor = Process(target=ProcessMonitor(streamlit_process, "Streamlit").monitor)
+        fastapi_monitor = Process(target=ProcessMonitor(fastapi_process.pid, "FastAPI").monitor)
+        streamlit_monitor = Process(target=ProcessMonitor(streamlit_process.pid, "Streamlit").monitor)
 
-        # 启动监控线程
         fastapi_monitor.start()
         streamlit_monitor.start()
 
-        # 等待两个进程结束
+        fastapi_process.wait()
+        streamlit_process.wait()
+
         pool.close()
         pool.join()
 

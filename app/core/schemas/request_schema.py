@@ -27,7 +27,7 @@ class HTTPRequestSchema(BaseModel):
         valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
         if value.upper() not in valid_methods:
             raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
-        return value.upper()  # 统一转换为大写
+        return value.upper() 
 
     @field_validator('url')
     def validate_url(cls, value):

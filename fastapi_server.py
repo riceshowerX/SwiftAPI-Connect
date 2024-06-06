@@ -31,8 +31,8 @@ def run_fastapi():
             fastapi_app,
             host=settings.SERVER_HOST,
             port=settings.SERVER_PORT,
-            reload=True,  # 开启自动重新加载
-            log_config={  # 配置日志记录
+            reload=True,
+            log_config={
                 "version": 1,
                 "disable_existing_loggers": False,
                 "formatters": {
@@ -64,12 +64,12 @@ def run_fastapi():
 
 
 if __name__ == "__main__":
-    # 添加 CORS 中间件 (全局配置)
+    # 添加 CORS 中间件
     fastapi_app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,  # 允许访问的域名
+        allow_origins=settings.CORS_ORIGINS, 
         allow_credentials=True,
-        allow_methods=["*"],  # 允许所有方法
+        allow_methods=["*"],
         allow_headers=["*"],
     )
 

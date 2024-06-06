@@ -14,26 +14,6 @@ async def send_http_request(
     timeout: Optional[float] = None,
     **kwargs: Dict[str, Any]
 ) -> httpx.Response:
-    """
-    发送 HTTP 请求
-
-    Args:
-        method: HTTP 请求方法，例如 'GET', 'POST', 'PUT', 'DELETE'
-        url: 请求 URL
-        headers: 请求头
-        params: 请求参数
-        data: 请求体（表单数据）
-        json: 请求体（JSON 数据）
-        timeout: 请求超时时间 (秒)
-        **kwargs: 其他请求参数
-
-    Returns:
-        httpx.Response: HTTP 响应对象
-
-    Raises:
-        HTTPError: HTTP 请求错误
-    """
-
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
             logging.info(f"Sending {method} request to {url} with params: {kwargs}")
@@ -52,7 +32,7 @@ async def send_http_request(
             logging.debug(f"Response body: {response.text}")
             logging.info(f"Received response: {response.status_code}")
 
-            response.raise_for_status()  # 如果状态码 >= 400 则抛出异常
+            response.raise_for_status() 
             return response
 
         except httpx.HTTPStatusError as exc:
