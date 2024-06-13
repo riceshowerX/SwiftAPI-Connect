@@ -1,10 +1,10 @@
 <div align="center" style="display: flex; align-items: center;">
-  <img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="50" height="50" style="margin-right: 10px;"> 
+  <img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="70" height="70" style="margin-right: 10px;"> 
   <h1> SwiftAPI-Connect </h1> 
 </div>
 
 <p align="center">
-  SwiftAPI-Connect 是一款多功能的网站请求和性能测试工具，基于高性能的 FastAPI 框架构建。它提供用户友好的界面，让您可以轻松发送各种 HTTP 请求、监控响应时间、分析性能指标，并帮助您优化您的 Web 应用。
+  🚀 **SwiftAPI-Connect 是一款基于 FastAPI 的多功能网站请求工具，旨在简化和加速您的 Web 开发流程！** 
 </p>
 
 <p align="center">
@@ -14,18 +14,14 @@
   <a href="https://github.com/riceshowerX/SwiftAPI-Connect/pulls"><img src="https://img.shields.io/github/issues-pr/riceshowerX/SwiftAPI-Connect" alt="Pull Requests"></a>
 </p>
 
-## 主要特性
+## ✨ 主要特性
 
-- **基于 FastAPI 构建:**  提供快速且高效的 API 服务。
-- **内置用户界面:** 提供直观易用的界面，用于可视化 HTTP 请求和响应，并进行交互操作。
-- **模拟 HTTP 请求:** 支持 GET、POST、PUT、DELETE 等各种方法。
-- **详细响应信息:**  提供丰富的响应信息，便于检查和调试 API 行为。
-- **支持 API 密钥验证:** 确保 API 的安全性。
-- **自动检测响应内容编码:** 自动解码响应内容。
-- **响应时间图表:** 方便分析请求性能。
-- **自定义数据格式:**  支持处理各种类型的 API 响应。
-- **请求数据加密:**  保护敏感数据，增强安全性。
-- **自动生成加密密钥:** 简化密钥管理。
+- **🚀 高性能请求引擎:**  基于 FastAPI 构建，提供快速且高效的网站请求体验。
+- **🖥️  直观的用户界面:**  提供易于使用的界面，用于构建请求、发送请求和查看结果，无需编写代码即可测试您的网站。
+- **🌐 多种请求方法:** 支持 GET、POST、PUT、DELETE 等所有常见的 HTTP 请求方法，满足您的各种测试需求。
+- **📊 详细的性能指标:**  提供丰富的性能指标，包括响应时间、状态码、请求头、响应头等，帮助您深入分析网站性能。
+- **🔐 安全可靠:** 支持 API 密钥验证等安全机制，确保您的请求安全可靠。 
+- **⚙️  灵活易用:**  支持自定义请求头、请求体、数据格式等，满足您个性化的测试需求。
 
 ## 快速开始
 
