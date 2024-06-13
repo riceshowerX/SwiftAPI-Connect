@@ -1,5 +1,5 @@
 <div align="center">
-  <h1><img src="https://raw.githubusercontent.com/riceshowerX/SwiftAPI-Connect/main/logo.svg" alt="Logo" width="80" height="80"> SwiftAPI-Connect </h1>
+  <h1><img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="80" height="80"> SwiftAPI-Connect </h1>
   <p>基于 FastAPI 的强大 API 连接器，为您的开发和测试流程提供便捷的辅助工具。</p>
   <p>
     <a href="https://github.com/riceshowerX/SwiftAPI-Connect/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"></a>
@@ -8,7 +8,6 @@
     <a href="https://github.com/riceshowerX/SwiftAPI-Connect/pulls"><img src="https://img.shields.io/github/issues-pr/riceshowerX/SwiftAPI-Connect" alt="Pull Requests"></a>
   </p>
 </div>
-```markdown
 ## 主要特性
 
 - **基于 FastAPI 构建:**  提供快速且高效的 API 服务。
@@ -118,4 +117,3 @@ SwiftAPI-Connect 使用 Apache License 2.0 许可。详细信息请参阅 [LICEN
 - 独立评估: 用户需自行评估本项目的适用性和安全性，确保其符合自身需求。
 
 用户在使用本项目的过程中出现的任何问题、故障或损害，均由用户自行负责，开发者和贡献者概不负责。通过使用本项目，用户即表示已阅读并同意上述所有条款和条件。
-```
