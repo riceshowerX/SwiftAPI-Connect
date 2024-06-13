@@ -1,42 +1,47 @@
 # run.py
+import logging
+import signal
+import multiprocessing
 from multiprocessing import Process, Pool
+import time
+
 from fastapi_server import run_fastapi
 from ui.main_ui import run_ui
 from app.core.utils.process_monitor import ProcessMonitor
-import logging
-import signal
 
-# 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
 
 def signal_handler(sig, frame):
     logging.info("Stopping SwiftAPI-Connect...")
     exit(0)
 
+def run_process(target, name):
+    """运行进程并监控其状态，如果进程退出则尝试重启"""
+    while True:
+        try:
+            process = Process(target=target)
+            process.start()
+            logging.info(f"Starting {name} process with PID: {process.pid}")
+            ProcessMonitor(process.pid, name).monitor()  # 监控进程
+        except Exception as e:
+            logging.exception(f"An error occurred in {name} process: {e}")
+        time.sleep(5)  # 等待 5 秒后尝试重启
+
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     try:
-        pool = Pool(processes=2)
+        pool_size = multiprocessing.cpu_count()
+        logging.info(f"Starting process pool with {pool_size} workers.")
 
-        fastapi_process = pool.apply_async(run_fastapi)
-        streamlit_process = pool.apply_async(run_ui)
+        # 使用进程池运行 FastAPI 和 Streamlit
+        with Pool(processes=pool_size) as pool:
+            pool.apply_async(run_process, args=(run_fastapi, "FastAPI"))
+            pool.apply_async(run_process, args=(run_ui, "Streamlit"))
 
-        logging.info(f"Starting FastAPI process with PID: {fastapi_process.pid}")
-        logging.info(f"Starting Streamlit process with PID: {streamlit_process.pid}")
-
-        fastapi_monitor = Process(target=ProcessMonitor(fastapi_process.pid, "FastAPI").monitor)
-        streamlit_monitor = Process(target=ProcessMonitor(streamlit_process.pid, "Streamlit").monitor)
-
-        fastapi_monitor.start()
-        streamlit_monitor.start()
-
-        fastapi_process.wait()
-        streamlit_process.wait()
-
-        pool.close()
-        pool.join()
+            pool.close()
+            pool.join()
 
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logging.exception(f"An error occurred: {e}")

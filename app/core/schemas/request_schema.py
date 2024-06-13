@@ -1,6 +1,7 @@
 # request_schema.py
 from typing import Dict, Optional, Union, List
 from pydantic import BaseModel, AnyUrl, Field, field_validator
+import validators
 
 class HTTPRequestSchema(BaseModel):
     """
@@ -26,11 +27,11 @@ class HTTPRequestSchema(BaseModel):
     def method_must_be_valid(cls, value):
         valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
         if value.upper() not in valid_methods:
-            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}")
+            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}", "method")
         return value.upper() 
 
     @field_validator('url')
     def validate_url(cls, value):
-        if not value.startswith(("http://", "https://")):
-            raise ValueError("URL must start with http:// or https://")
+        if not validators.url(value):
+            raise ValueError("Invalid URL format.", "url")
         return value

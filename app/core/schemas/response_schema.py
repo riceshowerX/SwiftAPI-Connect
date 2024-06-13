@@ -17,7 +17,7 @@ class HTTPResponseSchema(BaseModel):
     """
 
     status_code: int = Field(..., description="响应状态码", example=200)
-    text: Optional[Union[str, bytes]] = Field(None, description="响应正文内容")
+    text: str = Field(..., description="响应正文内容")
     headers: Dict[str, Union[str, List[str]]] = Field(..., description="响应头信息")
     elapsed: float = Field(..., description="响应时间（秒）", example=0.5)
     encoding: Optional[str] = Field("utf-8", description="响应正文的编码格式", example="utf-8")
@@ -26,13 +26,13 @@ class HTTPResponseSchema(BaseModel):
     @validator('elapsed')
     def elapsed_must_be_positive(cls, value):
         if value <= 0:
-            raise ValueError("Elapsed time must be a positive number.")
+            raise ValueError("Elapsed time must be a positive number.", "elapsed")
         return value
 
     @validator('status_code')
     def status_code_must_be_valid(cls, value):
         if not 100 <= value <= 599:
-            raise ValueError("Status code must be between 100 and 599.")
+            raise ValueError("Status code must be between 100 and 599.", "status_code")
         return value
 
     def to_dict(self):
@@ -52,7 +52,7 @@ class HTTPResponseSchema(BaseModel):
         """
         return cls(
             status_code=response.status_code,
-            text=response.text,
+            text=response.text if isinstance(response.text, str) else response.text.decode(response.encoding),
             headers=response.headers,
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,
