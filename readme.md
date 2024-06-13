@@ -1,6 +1,6 @@
 <div align="center" style="display: flex; align-items: center;">
   <img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="70" height="70" style="margin-right: 10px;"> 
-  <h1> SwiftAPI-Connect </h1> 
+  <h1>SwiftAPI-Connect</h1> 
 </div>
 
 <p align="center">
@@ -8,29 +8,29 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"></a>
-  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/releases/latest"><img src="https://img.shields.io/github/v/release/riceshowerX/SwiftAPI-Connect" alt="Latest Release"></a>
-  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/issues"><img src="https://img.shields.io/github/issues/riceshowerX/SwiftAPI-Connect" alt="Open Issues"></a>
-  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/pulls"><img src="https://img.shields.io/github/issues-pr/riceshowerX/SwiftAPI-Connect" alt="Pull Requests"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/releases/latest" target="_blank"><img src="https://img.shields.io/github/v/release/riceshowerX/SwiftAPI-Connect" alt="Latest Release"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/issues" target="_blank"><img src="https://img.shields.io/github/issues/riceshowerX/SwiftAPI-Connect" alt="Open Issues"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/pulls" target="_blank"><img src="https://img.shields.io/github/issues-pr/riceshowerX/SwiftAPI-Connect" alt="Pull Requests"></a>
 </p>
 
 ## ✨ 主要特性
 
-- **🚀 高性能请求引擎:**  基于 FastAPI 构建，提供快速且高效的网站请求体验。
-- **🖥️  直观的用户界面:**  提供易于使用的界面，用于构建请求、发送请求和查看结果，无需编写代码即可测试您的网站。
-- **🌐 多种请求方法:** 支持 GET、POST、PUT、DELETE 等所有常见的 HTTP 请求方法，满足您的各种测试需求。
-- **📊 详细的性能指标:**  提供丰富的性能指标，包括响应时间、状态码、请求头、响应头等，帮助您深入分析网站性能。
-- **🔐 安全可靠:** 支持 API 密钥验证等安全机制，确保您的请求安全可靠。 
-- **⚙️  灵活易用:**  支持自定义请求头、请求体、数据格式等，满足您个性化的测试需求。
+- 🚀 **高性能请求引擎:** 基于 FastAPI 构建，提供快速且高效的网站请求体验。
+- 🖥️ **直观的用户界面:** 提供易于使用的界面，用于构建请求、发送请求和查看结果，无需编写代码即可测试您的网站。
+- 🌐 **多种请求方法:** 支持 GET、POST、PUT、DELETE 等所有常见的 HTTP 请求方法，满足您的各种测试需求。
+- 📊 **详细的性能指标:** 提供丰富的性能指标，包括响应时间、状态码、请求头、响应头等，帮助您深入分析网站性能。
+- 🔐 **安全可靠:** 支持 API 密钥验证等安全机制，确保您的请求安全可靠。 
+- ⚙️ **灵活易用:** 支持自定义请求头、请求体、数据格式等，满足您个性化的测试需求。
 
-## 快速开始
+## 🚀 快速开始
 
 1. **克隆代码库:**
 
    ```bash
    git clone https://github.com/riceshowerX/SwiftAPI-Connect.git
    ```
-   
+
 2. **安装依赖:**
 
    ```bash
@@ -66,7 +66,7 @@
 
    在 UI 中，您需要输入 API 密钥才能发送请求。您也可以选择是否开启加密功能。
 
-## 特性实现状态
+## 🎨 特性实现状态
 
 | 特性                 | 实现状态 |
 |----------------------|----------|
@@ -88,18 +88,18 @@
 | 国际化支持           | ❌       |
 | API 文档生成         | ❌       |
 
-## 贡献
+## 🤝 贡献
 
 我们热烈欢迎您的贡献！
 如果您有任何想法、建议或发现任何问题，请随时提交 pull request 或开启 issue。
 
 本项目由个人在业余时间开发和维护，因此开发和修复进度可能较慢，且不定期进行更新。我们感谢您的理解和支持，并欢迎通过提交 issue 或 pull request 来帮助改进项目。
 
-## 许可证
+## ⚖️ 许可证
 
 SwiftAPI-Connect 使用 Apache License 2.0 许可。详细信息请参阅 [LICENSE](https://github.com/riceshowerX/SwiftAPI-Connect/blob/main/LICENSE) 文件。
 
-## 免责声明
+## ⚠️ 免责声明
 
 本项目按“原样”提供，不附带任何明示或暗示的保证。具体而言，包括但不限于针对适销性、特定用途的适用性和不侵权的保证。用户在使用本项目时需自行承担风险。
 
