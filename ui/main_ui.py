@@ -1,25 +1,27 @@
 # main_ui.py
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from ui.components.request_form import get_params
-from ui.components.progress_bar import show_progress_bar
-
-import streamlit as st
-import requests
 import json
 import logging
 import time
 import chardet
 import asyncio
-
 from typing import Dict, Optional, Union
-from pydantic import BaseModel, AnyUrl, Field, field_validator
-from cryptography.fernet import Fernet
 
+import streamlit as st
+import requests
+from pydantic import BaseModel, AnyUrl, Field, field_validator, ValidationError
+from cryptography.fernet import Fernet
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.memory import MemoryJobStore
+
+from ui.components.request_form import get_params
+from ui.components.progress_bar import show_progress_bar
 from app.core.services.mock_data_service import MockDataService
-from app.core.services.task_scheduler import TaskScheduler
+from app.core.schemas.request_schema import HTTPRequestSchema
+from app.core.schemas.response_schema import HTTPResponseSchema
+from app.core.utils.request_helper import send_http_request, HTTPError
+from app.core.utils.crypto import encrypt_data, decrypt_data
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
@@ -113,8 +115,72 @@ def generate_encryption_key():
 
 # 初始化服务
 mock_data_service = MockDataService()
-task_scheduler = TaskScheduler()
+# 初始化任务调度器
+task_scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
 
+# --- 函数定义 ---
+
+def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bool):
+    """发送 HTTP 请求，并处理加密和异常"""
+    try:
+        if encryption_enabled:
+            request_data.url = encrypt_data(request_data.url)
+            if request_data.params is not None:
+                request_data.params = {k: encrypt_data(v) for k, v in request_data.params.items()}
+            if request_data.headers is not None:
+                request_data.headers = {k: encrypt_data(v) for k, v in request_data.headers.items()}
+            if request_data.data is not None:
+                request_data.data = encrypt_data(request_data.data)
+            if request_data.json_data is not None:
+                request_data.json_data = {k: encrypt_data(v) for k, v in request_data.json_data.items()}
+
+        response = asyncio.run(send_http_request(
+            method=request_data.method,
+            url=request_data.url,
+            params=request_data.params,
+            headers=request_data.headers,
+            data=request_data.data,
+            json_data=request_data.json_data,
+            encoding=request_data.encoding,
+        ))
+
+        response_data = HTTPResponseSchema.from_attributes(response)
+
+        if encryption_enabled:
+            response_data.text = decrypt_data(response_data.text)
+            response_data.headers = {k: decrypt_data(v) for k, v in response_data.headers.items()}
+
+        # 展示结果
+        st.header("请求结果")
+        st.write(f"状态码: {response_data.status_code}")
+        st.write(f"响应时间: {response_data.elapsed} 秒")
+        st.write("响应 Header:")
+        st.json(response_data.headers)
+        st.write("响应内容:")
+        st.text(response_data.text)
+
+    except HTTPError as e:
+        st.error(f"请求失败: {e.detail}")
+    except Exception as e:
+        st.error(f"请求失败: {str(e)}")
+
+def generate_encryption_key():
+    """生成新的加密密钥，并使用 KMS 或 Vault 等安全方式存储"""
+    key = Fernet.generate_key()
+    st.session_state.encryption_key = key.decode()
+    st.success("新的加密密钥已生成！")
+
+    # **请根据你的实际情况选择合适的密钥管理方案，并完善 `generate_encryption_key` 函数。**
+
+    # **以下是一个使用环境变量存储密钥的示例：**
+
+    # ```python
+    # key = Fernet.generate_key()
+    # os.environ["ENCRYPTION_KEY"] = key.decode()
+    # st.success("新的加密密钥已生成并存储到环境变量中！")
+    # ```
+
+# --- Streamlit 应用 ---
 
 def run_ui():
     st.title("HTTP 请求模拟工具")
@@ -148,19 +214,23 @@ def run_ui():
         url = st.text_input("请求 URL", key="task_url")
         interval = st.number_input("间隔时间 (秒)", min_value=1, key="task_interval")
         if st.button("添加任务", key="add_task"):
-            async def send_request_task():
-                while True:
-                    try:
-                        response = requests.get(url)
-                        logging.info(f"定时任务执行成功，状态码: {response.status_code}")
-                    except Exception as e:
-                        logging.error(f"定时任务执行失败: {e}")
-                    await asyncio.sleep(interval)
-            task_scheduler.add_task(send_request_task())
-            st.success("定时任务已添加")
-
-    if st.button("启动任务调度器"):
-        asyncio.run(task_scheduler.run_tasks())
+            try:
+                # 使用 Pydantic 模型验证请求参数
+                request_data = HTTPRequestSchema(
+                    method="GET",
+                    url=url,
+                    params=None,
+                    headers=None,
+                    data=None,
+                    json_data=None,
+                    encoding=None,
+                )
+                # 使用 APScheduler 添加定时任务
+                task_scheduler.add_job(send_http_request_ui, "interval", seconds=interval, args=[request_data, False])
+                task_scheduler.start()
+                st.success("定时任务已添加")
+            except ValidationError as e:
+                st.error(f"请求参数错误: {e}")
 
     # --- HTTP 请求模拟工具 ---
     st.title("HTTP 请求模拟工具")
@@ -208,7 +278,7 @@ def run_ui():
     # 编码选择
     encoding = st.selectbox("选择编码", COMMON_ENCODINGS, key="encoding")
 
-    # 加密选项区域
+    # --- 加密选项区域 ---
     st.header("加密选项")
     encryption_enabled = st.checkbox("开启加密", key="encryption_enabled")
 
@@ -221,7 +291,7 @@ def run_ui():
         st.write("**加密密钥:**", st.session_state.encryption_key)
         st.info("请妥善保管此密钥，不要将其分享给他人！")
 
-    # 发送请求按钮
+    # --- 发送请求按钮 ---
     if st.button("发送请求"):
         try:
             # 使用 Pydantic 模型验证请求参数
@@ -236,36 +306,12 @@ def run_ui():
             )
             logging.info(f"Request data: {request_data}")
 
-            response = send_request(
-                method=request_data.method,
-                url=request_data.url,
-                params=request_data.params,
-                headers=request_data.headers,
-                data=request_data.data,
-                json_data=request_data.json_data,
-                encoding=request_data.encoding,
-                encryption_enabled=encryption_enabled,
-            )
+            send_http_request_ui(request_data, encryption_enabled)
 
-            # 自动检测响应编码
-            detected_encoding = chardet.detect(response.content)["encoding"]
-            logging.info(f"Detected response encoding: {detected_encoding}")
-            response_text = response.content.decode(
-                detected_encoding, errors="replace"
-            )
-
-            # 展示结果
-            st.header("请求结果")
-            st.write(f"状态码: {response.status_code}")
-            st.write(f"响应时间: {response.elapsed.total_seconds()} 秒")
-            st.write("响应 Header:")
-            st.json(dict(response.headers))
-            st.write("响应内容:")
-            st.text(response_text)
-
+        except ValidationError as e:
+            st.error(f"请求参数错误: {e}")
         except Exception as e:
             st.error(f"请求失败: {str(e)}")
-
 
 if __name__ == "__main__":
     run_ui()

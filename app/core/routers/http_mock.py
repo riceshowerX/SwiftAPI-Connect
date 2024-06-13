@@ -22,10 +22,19 @@ async def make_request(request: Request, data: HTTPRequestSchema, encryption_ena
     logging.info(f"Received request: {data}")
     try:
         if encryption_enabled:
-            # ... (加密逻辑)
+            data.url = encrypt_data(data.url)
+            if data.params is not None:
+                data.params = {k: encrypt_data(v) for k, v in data.params.items()}
+            if data.headers is not None:
+                data.headers = {k: encrypt_data(v) for k, v in data.headers.items()}
+            if data.data is not None:
+                data.data = encrypt_data(data.data)
+            if data.json_data is not None:
+                data.json_data = {k: encrypt_data(v) for k, v in data.json_data.items()}
 
         response = await send_http_request(
-            method=data.method,           url=data.url,
+            method=data.method,
+            url=data.url,
             params=data.params,
             headers=data.headers,
             data=data.data,
@@ -36,7 +45,8 @@ async def make_request(request: Request, data: HTTPRequestSchema, encryption_ena
         response_data = HTTPResponseSchema.from_attributes(response)
 
         if encryption_enabled:
-            # ... (解密逻辑)
+            response_data.text = decrypt_data(response_data.text)
+            response_data.headers = {k: decrypt_data(v) for k, v in response_data.headers.items()}
 
         logging.info(f"Returning response: {response_data}")
         return JSONResponse(response_data.to_dict())
