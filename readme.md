@@ -1,13 +1,19 @@
-<div align="center">
-  <h1><img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="80" height="80"> SwiftAPI-Connect </h1>
-  <p>基于 FastAPI 的强大 API 连接器，为您的开发和测试流程提供便捷的辅助工具。</p>
-  <p>
-    <a href="https://github.com/riceshowerX/SwiftAPI-Connect/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"></a>
-    <a href="https://github.com/riceshowerX/SwiftAPI-Connect/releases/latest"><img src="https://img.shields.io/github/v/release/riceshowerX/SwiftAPI-Connect" alt="Latest Release"></a>
-    <a href="https://github.com/riceshowerX/SwiftAPI-Connect/issues"><img src="https://img.shields.io/github/issues/riceshowerX/SwiftAPI-Connect" alt="Open Issues"></a>
-    <a href="https://github.com/riceshowerX/SwiftAPI-Connect/pulls"><img src="https://img.shields.io/github/issues-pr/riceshowerX/SwiftAPI-Connect" alt="Pull Requests"></a>
-  </p>
+<div align="center" style="display: flex; align-items: center;">
+  <img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="50" height="50" style="margin-right: 10px;"> 
+  <h1> SwiftAPI-Connect </h1> 
 </div>
+
+<p align="center">
+  基于 FastAPI 的强大 API 连接器，为您的开发和测试流程提供便捷的辅助工具。
+</p>
+
+<p align="center">
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/releases/latest"><img src="https://img.shields.io/github/v/release/riceshowerX/SwiftAPI-Connect" alt="Latest Release"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/issues"><img src="https://img.shields.io/github/issues/riceshowerX/SwiftAPI-Connect" alt="Open Issues"></a>
+  <a href="https://github.com/riceshowerX/SwiftAPI-Connect/pulls"><img src="https://img.shields.io/github/issues-pr/riceshowerX/SwiftAPI-Connect" alt="Pull Requests"></a>
+</p>
+
 ## 主要特性
 
 - **基于 FastAPI 构建:**  提供快速且高效的 API 服务。
