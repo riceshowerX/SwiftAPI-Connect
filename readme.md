@@ -4,7 +4,7 @@
 </div>
 
 <p align="center">
-  基于 FastAPI 的强大 API 连接器，为您的开发和测试流程提供便捷的辅助工具。
+  SwiftAPI-Connect 是一款多功能的网站请求和性能测试工具，基于高性能的 FastAPI 框架构建。它提供用户友好的界面，让您可以轻松发送各种 HTTP 请求、监控响应时间、分析性能指标，并帮助您优化您的 Web 应用。
 </p>
 
 <p align="center">
