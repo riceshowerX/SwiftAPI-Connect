@@ -2,8 +2,9 @@
 import logging
 import signal
 import multiprocessing
-from multiprocessing import Process, Pool
+from multiprocessing import Process
 import time
+from concurrent.futures import ProcessPoolExecutor
 
 from fastapi_server import run_fastapi
 from ui.main_ui import run_ui
@@ -23,6 +24,7 @@ def run_process(target, name):
             process.start()
             logging.info(f"Starting {name} process with PID: {process.pid}")
             ProcessMonitor(process.pid, name).monitor()  # 监控进程
+            process.join()  # 等待进程结束
         except Exception as e:
             logging.exception(f"An error occurred in {name} process: {e}")
         time.sleep(5)  # 等待 5 秒后尝试重启
@@ -36,12 +38,9 @@ if __name__ == "__main__":
         logging.info(f"Starting process pool with {pool_size} workers.")
 
         # 使用进程池运行 FastAPI 和 Streamlit
-        with Pool(processes=pool_size) as pool:
-            pool.apply_async(run_process, args=(run_fastapi, "FastAPI"))
-            pool.apply_async(run_process, args=(run_ui, "Streamlit"))
-
-            pool.close()
-            pool.join()
+        with ProcessPoolExecutor(max_workers=pool_size) as executor:
+            executor.submit(run_process, run_fastapi, "FastAPI")
+            executor.submit(run_process, run_ui, "Streamlit")
 
     except Exception as e:
         logging.exception(f"An error occurred: {e}")
