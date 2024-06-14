@@ -11,13 +11,19 @@ from app.core.utils.process_monitor import ProcessMonitor
 
 logging.basicConfig(level=logging.INFO)
 
+# 定义全局变量 is_running
+is_running = True
+
 def signal_handler(sig, frame):
     logging.info("Stopping SwiftAPI-Connect...")
+    global is_running
+    is_running = False  # 设置全局变量为 False，通知所有进程停止
     exit(0)
 
 def run_process(target, name):
     """运行进程并监控其状态，如果进程退出则尝试重启"""
-    while True:
+    global is_running 
+    while is_running:  # 检查全局变量
         try:
             process = Process(target=target)
             process.start()
@@ -28,7 +34,7 @@ def run_process(target, name):
         time.sleep(5)  # 等待 5 秒后尝试重启
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)  # 注册信号处理函数
     signal.signal(signal.SIGTERM, signal_handler)
 
     try:
