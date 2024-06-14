@@ -3,10 +3,13 @@ import logging
 import chardet
 
 DEFAULT_ENCODING = "utf-8"
+COMMON_ENCODINGS = ["ascii", "utf-8", "utf-16", "utf-32", "latin-1", "gbk", "gb18030", "big5", "shift-jis", "euc-jp", "euc-kr"]
 
 class DecodingError(Exception):
     """自定义解码错误"""
-    pass
+    def __init__(self, message, tried_encodings):
+        super().__init__(message)
+        self.tried_encodings = tried_encodings
 
 def decode_content(content: bytes, encoding: str = None) -> str:
     """
@@ -22,7 +25,7 @@ def decode_content(content: bytes, encoding: str = None) -> str:
         tried_encodings.append(encoding)
 
     # 尝试使用指定的编码或默认编码解码
-    for enc in tried_encodings + [DEFAULT_ENCODING]:
+    for enc in tried_encodings + COMMON_ENCODINGS:
         try:
             logging.debug(f"Attempting to decode content with encoding: {enc}")
             return content.decode(enc)
@@ -40,4 +43,4 @@ def decode_content(content: bytes, encoding: str = None) -> str:
             logging.warning(f"Failed to decode content with detected encoding: {e}")
 
     # 所有尝试都失败，抛出自定义异常
-    raise DecodingError(f"Failed to decode content. Tried encodings: {tried_encodings}")
+    raise DecodingError(f"Failed to decode content. Tried encodings: {tried_encodings}", tried_encodings)

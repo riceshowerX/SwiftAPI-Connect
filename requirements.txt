@@ -11,3 +11,5 @@ psutil
 cryptography
 ui
 python-dotenv
+validators
+apscheduler

@@ -1,16 +1,9 @@
 # task_scheduler.py
-# 此文件定义与任务调度相关的服务
-import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.memory import MemoryJobStore
 
-class TaskScheduler:
-    def __init__(self):
-        # 初始化任务队列
-        self.tasks = []
+# 初始化调度器，使用内存存储任务
+scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
 
-    def add_task(self, task):
-        # 添加任务到队列
-        self.tasks.append(task)
-
-    async def run_tasks(self):
-        # 运行所有任务
-        await asyncio.gather(*self.tasks)
+# 启动调度器
+scheduler.start()

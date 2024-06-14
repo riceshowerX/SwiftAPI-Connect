@@ -17,5 +17,9 @@ def get_params(param_type, key_prefix, value_prefix):
                 value = st.text_input(
                     f"{param_type} 参数 {i+1} 的 Value", key=f"{value_prefix}_{i}"
                 )
-            params[key] = value
+            # 简单的数据校验: key 不能为空
+            if key:
+                params[key] = value 
+            else:
+                st.warning(f"{param_type} 参数 {i+1} 的 Key 不能为空")
     return params
