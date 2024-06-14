@@ -14,6 +14,8 @@ from pydantic import BaseModel, AnyUrl, Field, field_validator, ValidationError
 from cryptography.fernet import Fernet
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
+import signal
+import os
 
 from ui.components.request_form import get_params
 from ui.components.progress_bar import show_progress_bar
@@ -307,11 +309,15 @@ def run_ui():
             st.error(f"请求参数错误: {e}")
         except Exception as e:
             st.error(f"请求失败: {str(e)}")
-     # 添加关闭项目按钮
+    # 添加关闭项目按钮
     if st.button("关闭项目"):
-        # 这里需要设置一个全局变量，用于通知其他进程退出
-        global is_running  
-        is_running = False
+        try:
+            # 获取 run.py 的进程 ID
+            run_py_pid = os.getppid() 
+            # 向 run.py 进程发送 SIGINT 信号
+            os.kill(run_py_pid, signal.SIGINT)
+        except Exception as e:
+            st.error(f"关闭项目失败: {str(e)}")
 
 if __name__ == "__main__":
     run_ui()
