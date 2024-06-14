@@ -16,7 +16,7 @@ def get_params(param_type: str, key_prefix: str, value_prefix: str) -> Dict[str,
     params = {}
     with st.expander(f"{param_type} 参数"):
         param_count = st.number_input(
-            f"{param_type} 参数数量", min_value=0, step=1, key=f"{param_type}_params_count"
+            f"{param_type} 参数数量", min_value=0, step=1, key=f"{param_type}_params_count", value=0
         )
         for i in range(param_count):
             col1, col2 = st.columns(2)
@@ -34,7 +34,7 @@ def get_params(param_type: str, key_prefix: str, value_prefix: str) -> Dict[str,
             if key:
                 params[key] = value 
             else:
-                st.warning(f"{param_type} 参数 {i+1} 的 Key 不能为空")
+                st.warning(f"{param_type} 参数 {i+1} 的 Key 不能为空，请输入参数名")
     return params
 
 # 示例使用
