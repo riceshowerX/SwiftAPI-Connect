@@ -2,10 +2,10 @@
 import logging
 import os
 import uvicorn 
-
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.main import app as fastapi_app
 from app.core.errors.http_errors import http_exception_handler
@@ -13,7 +13,10 @@ from app.core.config import settings
 
 # 从环境变量中读取日志级别
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=LOG_LEVEL)
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # 添加 API 密钥验证
 async def api_key_auth(request: Request, call_next):
@@ -33,7 +36,7 @@ fastapi_app.add_middleware(
 )
 
 # 添加 API 密钥验证中间件
-fastapi_app.middleware("http")(api_key_auth)
+fastapi_app.add_middleware(BaseHTTPMiddleware, dispatch=api_key_auth)
 
 # 添加全局异常处理
 fastapi_app.add_exception_handler(HTTPException, http_exception_handler)
