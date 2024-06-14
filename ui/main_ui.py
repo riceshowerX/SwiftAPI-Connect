@@ -1,6 +1,4 @@
 # main_ui.py
-from dotenv import load_dotenv
-load_dotenv() # 加载环境变量
 import sys
 import os
 import json
@@ -124,6 +122,7 @@ task_scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
 
 def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bool, encoding: Optional[str]):
     """发送 HTTP 请求，并处理加密和异常"""
+    progress_bar = st.progress(0)  # 创建进度条
     try:
         if encryption_enabled:
             request_data.url = encrypt_data(request_data.url)
@@ -161,10 +160,14 @@ def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bo
         st.write("响应内容:")
         st.text(response_data.text)
 
+        progress_bar.progress(100)  # 设置进度条为 100%
+        time.sleep(1)  # 等待 1 秒后自动关闭进度条
     except HTTPError as e:
         st.error(f"请求失败: {e.detail}")
     except Exception as e:
         st.error(f"请求失败: {str(e)}")
+    finally:
+        progress_bar.empty()  # 清除进度条
 
 def generate_encryption_key():
     """生成新的加密密钥，并使用 KMS 或 Vault 等安全方式存储"""
@@ -304,6 +307,11 @@ def run_ui():
             st.error(f"请求参数错误: {e}")
         except Exception as e:
             st.error(f"请求失败: {str(e)}")
+     # 添加关闭项目按钮
+    if st.button("关闭项目"):
+        # 这里需要设置一个全局变量，用于通知其他进程退出
+        global is_running  
+        is_running = False
 
 if __name__ == "__main__":
     run_ui()
