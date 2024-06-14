@@ -1,5 +1,6 @@
 # http_errors.py
-from fastapi import HTTPException, JSONResponse, Request
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
 from typing import Union
 import logging
 

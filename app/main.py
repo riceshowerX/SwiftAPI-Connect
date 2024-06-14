@@ -1,16 +1,24 @@
 # main.py
+from dotenv import load_dotenv
+import os
 from fastapi import FastAPI
 
 from app.core.routers import http_mock
 import logging
 
-# 设置日志级别为 DEBUG
+# 从环境变量中读取日志级别，默认为 INFO
+log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+
+# 设置日志级别
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=getattr(logging, log_level),
     format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     filename="app.log"
 )
+
+# 加载环境变量
+load_dotenv()
 
 app = FastAPI(
     title="HTTP Mock Server",
