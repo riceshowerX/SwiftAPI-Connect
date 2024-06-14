@@ -12,4 +12,11 @@ class Settings(BaseSettings):
     CPU_THRESHOLD: int = int(os.getenv("CPU_THRESHOLD", 80)) 
     MEMORY_THRESHOLD: int = int(os.getenv("MEMORY_THRESHOLD", 80)) 
 
+    SMTP_SERVER: str = os.getenv("SMTP_SERVER")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
+    SENDER_EMAIL: str = os.getenv("SENDER_EMAIL")
+    SENDER_PASSWORD: str = os.getenv("SENDER_PASSWORD")
+
+    # ... 其他配置
+
 settings = Settings()

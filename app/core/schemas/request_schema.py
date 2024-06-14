@@ -16,7 +16,7 @@ class HTTPRequestSchema(BaseModel):
     :param encoding: 请求体的编码
     """
     method: str = Field(..., description="HTTP 方法", example="GET")
-    url: AnyUrl = Field(..., description="请求 URL", example="https://example.com")
+    url: str = Field(..., description="请求 URL", example="https://example.com") # 修改为 str
     params: Optional[Dict[str, str]] = Field({}, description="查询参数", example={"key1": "value1", "key2": "value2"})
     headers: Optional[Dict[str, Union[str, List[str]]]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
     data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")

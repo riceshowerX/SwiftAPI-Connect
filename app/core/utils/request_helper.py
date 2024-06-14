@@ -12,10 +12,11 @@ async def send_http_request(
     headers: Optional[Dict[str, str]] = None,
     params: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
-    json: Optional[Any] = None,
+    json: Optional[Any] = None,  # 使用 json 参数
     timeout: Optional[float] = None,
     retries: int = 3,
     backoff_factor: float = 0.3, 
+    encoding: Optional[str] = None,
     **kwargs: Dict[str, Any]
 ) -> httpx.Response:
     """
@@ -30,6 +31,7 @@ async def send_http_request(
     :param timeout: 请求超时时间，可选，单位为秒。
     :param retries: 最大重试次数。
     :param backoff_factor: 重试间隔的指数退避因子。
+    :param encoding: 请求编码，可选。
     :param kwargs: 其他关键字参数。
     :return: HTTP 响应对象。
     :raises HTTPError: 当 HTTP 请求失败时抛出。
@@ -40,11 +42,11 @@ async def send_http_request(
                 logging.info(f"Sending {method} request to {url} (attempt {attempt + 1}/{retries + 1}) with params: {kwargs}")
                 response = await client.request(
                     method=method,
-                    url=url,
+                    url=str(url),  # 将 url 转换为字符串
                     headers=headers,
                     params=params,
                     data=data,
-                    json=json,
+                    json=json,  # 使用 json 参数
                     **kwargs,
                 )
                 logging.debug(f"Request headers: {response.request.headers}")
@@ -52,6 +54,10 @@ async def send_http_request(
                 logging.debug(f"Response headers: {response.headers}")
                 logging.debug(f"Response body: {response.text}")
                 logging.info(f"Received response: {response.status_code}")
+
+                # 使用 response.encoding 获取响应编码
+                response_encoding = response.encoding
+                logging.info(f"Response encoding: {response_encoding}")
 
                 response.raise_for_status()  # 如果状态码不为 2xx，则抛出异常
                 return response

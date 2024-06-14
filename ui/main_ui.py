@@ -1,4 +1,6 @@
 # main_ui.py
+from dotenv import load_dotenv
+load_dotenv() # 加载环境变量
 import sys
 import os
 import json
@@ -48,7 +50,7 @@ class HTTPRequestSchema(BaseModel):
     """
 
     method: str = Field(..., description="HTTP 方法", example="GET")
-    url: AnyUrl = Field(..., description="请求 URL", example="https://example.com")
+    url: str = Field(..., description="请求 URL", example="https://example.com")
     params: Optional[Dict[str, str]] = Field(
         {}, description="查询参数", example={"key1": "value1", "key2": "value2"}
     )
@@ -120,7 +122,7 @@ task_scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
 
 # --- 函数定义 ---
 
-def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bool):
+def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bool, encoding: Optional[str]):
     """发送 HTTP 请求，并处理加密和异常"""
     try:
         if encryption_enabled:
@@ -140,8 +142,8 @@ def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bo
             params=request_data.params,
             headers=request_data.headers,
             data=request_data.data,
-            json_data=request_data.json_data,
-            encoding=request_data.encoding,
+            json=request_data.json_data,
+            encoding=encoding,
         ))
 
         response_data = HTTPResponseSchema.from_attributes(response)
@@ -169,16 +171,6 @@ def generate_encryption_key():
     key = Fernet.generate_key()
     st.session_state.encryption_key = key.decode()
     st.success("新的加密密钥已生成！")
-
-    # **请根据你的实际情况选择合适的密钥管理方案，并完善 `generate_encryption_key` 函数。**
-
-    # **以下是一个使用环境变量存储密钥的示例：**
-
-    # ```python
-    # key = Fernet.generate_key()
-    # os.environ["ENCRYPTION_KEY"] = key.decode()
-    # st.success("新的加密密钥已生成并存储到环境变量中！")
-    # ```
 
 # --- Streamlit 应用 ---
 
@@ -226,7 +218,7 @@ def run_ui():
                     encoding=None,
                 )
                 # 使用 APScheduler 添加定时任务
-                task_scheduler.add_job(send_http_request_ui, "interval", seconds=interval, args=[request_data, False])
+                task_scheduler.add_job(send_http_request_ui, "interval", seconds=interval, args=[request_data, False, None])
                 task_scheduler.start()
                 st.success("定时任务已添加")
             except ValidationError as e:
@@ -306,7 +298,7 @@ def run_ui():
             )
             logging.info(f"Request data: {request_data}")
 
-            send_http_request_ui(request_data, encryption_enabled)
+            send_http_request_ui(request_data, encryption_enabled, encoding)
 
         except ValidationError as e:
             st.error(f"请求参数错误: {e}")

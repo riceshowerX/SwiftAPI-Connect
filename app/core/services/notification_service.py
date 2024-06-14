@@ -1,7 +1,7 @@
 # notification_service.py
 import smtplib
-import logging
 from email.mime.text import MIMEText
+import logging
 
 from app.core.config import settings
 

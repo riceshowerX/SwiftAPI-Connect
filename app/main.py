@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from app.core.routers import http_mock
 import logging
 
-# 从环境变量中读取日志级别，默认为 INFO
+# 从环境变量获取日志级别，默认为 INFO
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
 
 # 设置日志级别
