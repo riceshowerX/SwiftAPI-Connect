@@ -42,7 +42,7 @@ async def send_http_request(
                 logging.info(f"Sending {method} request to {url} (attempt {attempt + 1}/{retries + 1}) with params: {kwargs}")
                 response = await client.request(
                     method=method,
-                    url=str(url),  # 将 url 转换为字符串
+                    url=url,  # 这里不需要再将 url 转换为字符串
                     headers=headers,
                     params=params,
                     data=data,
