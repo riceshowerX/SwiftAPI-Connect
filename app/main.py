@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
 import logging
+from app.core.config import settings
 
 # 加载环境变量
 load_dotenv()

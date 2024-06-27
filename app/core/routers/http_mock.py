@@ -9,6 +9,7 @@ from app.core.schemas.request_schema import HTTPRequestSchema
 from app.core.schemas.response_schema import HTTPResponseSchema
 from app.core.errors.http_errors import HTTPError
 from app.core.utils.crypto import encrypt_data, decrypt_data
+from app.core.config import settings
 
 router = APIRouter(
     prefix="/mock",
@@ -19,17 +20,7 @@ async def get_encryption_status(request: Request) -> bool:
     return request.headers.get("Encryption", "False").lower() == "true"
 
 def encrypt_request_data(data: HTTPRequestSchema):
-    # 保留协议部分
-    protocol = data.url.split('://')[0] 
-    encrypted_url = encrypt_data(data.url.split('://')[1])
-    
-    # 检查加密后的URL长度
-    if len(encrypted_url) > 2000:  # 假设最大长度为2000字符
-        logging.error("Encrypted URL too long")
-        raise ValueError("Encrypted URL too long")
-    
-    data.url = f"{protocol}://{encrypted_url}"
-
+    data.url = encrypt_data(data.url)
     if data.params is not None:
         data.params = {k: encrypt_data(v) for k, v in data.params.items()}
     if data.headers is not None:
@@ -41,11 +32,6 @@ def encrypt_request_data(data: HTTPRequestSchema):
     return data
 
 def decrypt_response_data(response_data: HTTPResponseSchema):
-    # 保留协议部分
-    protocol = response_data.url.split('://')[0]
-    response_data.url = decrypt_data(response_data.url.split('://')[1])
-    response_data.url = f"{protocol}://{response_data.url}"
-
     response_data.text = decrypt_data(response_data.text)
     response_data.headers = {k: decrypt_data(v) for k, v in response_data.headers.items()}
     return response_data

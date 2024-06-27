@@ -1,4 +1,4 @@
-# notification_service.py
+# task_scheduler.py
 import smtplib
 from email.mime.text import MIMEText
 import logging

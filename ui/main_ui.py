@@ -24,6 +24,9 @@ from app.core.schemas.request_schema import HTTPRequestSchema
 from app.core.schemas.response_schema import HTTPResponseSchema
 from app.core.utils.request_helper import send_http_request, HTTPError
 from app.core.utils.crypto import encrypt_data, decrypt_data
+from app.core.config import settings
+from app.core.services.task_manager import TaskManager
+from app.core.services.notification_service import NotificationService
 
 # 设置日志级别为 INFO
 logging.basicConfig(level=logging.INFO)
