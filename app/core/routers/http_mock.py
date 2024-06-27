@@ -21,9 +21,14 @@ async def get_encryption_status(request: Request) -> bool:
 def encrypt_request_data(data: HTTPRequestSchema):
     # 保留协议部分
     protocol = data.url.split('://')[0] 
-    data.url = encrypt_data(data.url.split('://')[1])
-    # 将协议添加回加密后的 URL
-    data.url = f"{protocol}://{data.url}"
+    encrypted_url = encrypt_data(data.url.split('://')[1])
+    
+    # 检查加密后的URL长度
+    if len(encrypted_url) > 2000:  # 假设最大长度为2000字符
+        logging.error("Encrypted URL too long")
+        raise ValueError("Encrypted URL too long")
+    
+    data.url = f"{protocol}://{encrypted_url}"
 
     if data.params is not None:
         data.params = {k: encrypt_data(v) for k, v in data.params.items()}
@@ -39,7 +44,6 @@ def decrypt_response_data(response_data: HTTPResponseSchema):
     # 保留协议部分
     protocol = response_data.url.split('://')[0]
     response_data.url = decrypt_data(response_data.url.split('://')[1])
-    # 将协议添加回解密后的 URL
     response_data.url = f"{protocol}://{response_data.url}"
 
     response_data.text = decrypt_data(response_data.text)
