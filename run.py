@@ -4,7 +4,6 @@ import signal
 import multiprocessing
 from multiprocessing import Process
 import time
-from concurrent.futures import ProcessPoolExecutor
 
 from fastapi_server import run_fastapi
 from ui.main_ui import run_ui
@@ -18,48 +17,45 @@ def signal_handler(sig, frame):
 
 def start_process(target, name):
     """启动进程并返回进程对象"""
-    process = Process(target=target)
-    process.start()
-    logging.info(f"Starting {name} process with PID: {process.pid}")
-    return process
+    try:
+        process = Process(target=target)
+        process.start()
+        logging.info(f"Starting {name} process with PID: {process.pid}")
+        return process
+    except Exception as e:
+        logging.exception(f"Failed to start {name} process: {e}")
+        return None
 
 def monitor_process(process, name):
     """监控进程状态，如果进程退出则尝试重启"""
-    while True:
-        try:
-            # 使用信号处理机制监控进程状态
-            process.join()
-            logging.info(f"{name} process exited.")
-            # 尝试重启进程
-            process = start_process(target, name)
-        except Exception as e:
-            logging.exception(f"An error occurred in {name} process: {e}")
-        time.sleep(5)  # 等待 5 秒后尝试重启
+    monitor = ProcessMonitor(process, name)
+    monitor.start()
+    monitor.join()  # 等待监控进程结束
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)  # 注册信号处理函数
     signal.signal(signal.SIGTERM, signal_handler)
 
     try:
-        pool_size = multiprocessing.cpu_count()
-        logging.info(f"Starting process pool with {pool_size} workers.")
+        # 启动 FastAPI 进程
+        fastapi_process = start_process(run_fastapi, "FastAPI")
+        if fastapi_process is None:
+            exit(1)
 
-        # 使用进程池运行 FastAPI 和 Streamlit
-        with ProcessPoolExecutor(max_workers=pool_size) as executor:
-            # 启动 FastAPI 进程
-            fastapi_process = executor.submit(start_process, run_fastapi, "FastAPI").result()
-            # 启动 Streamlit 进程
-            streamlit_process = executor.submit(start_process, run_ui, "Streamlit").result()
+        # 启动 Streamlit 进程
+        streamlit_process = start_process(run_ui, "Streamlit")
+        if streamlit_process is None:
+            exit(1)
 
-            # 使用单独的线程来监控 FastAPI 和 Streamlit 进程
-            fastapi_monitor_thread = threading.Thread(target=monitor_process, args=(fastapi_process, "FastAPI"))
-            streamlit_monitor_thread = threading.Thread(target=monitor_process, args=(streamlit_process, "Streamlit"))
+        # 启动监控进程
+        fastapi_monitor_process = Process(target=monitor_process, args=(fastapi_process, "FastAPI"))
+        streamlit_monitor_process = Process(target=monitor_process, args=(streamlit_process, "Streamlit"))
 
-            fastapi_monitor_thread.start()
-            streamlit_monitor_thread.start()
+        fastapi_monitor_process.start()
+        streamlit_monitor_process.start()
 
-            fastapi_monitor_thread.join()
-            streamlit_monitor_thread.join()
+        fastapi_monitor_process.join()
+        streamlit_monitor_process.join()
 
     except Exception as e:
         logging.exception(f"An error occurred: {e}")

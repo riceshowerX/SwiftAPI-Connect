@@ -52,7 +52,7 @@ class HTTPResponseSchema(BaseModel):
         """
         return cls(
             status_code=response.status_code,
-            text=response.text if isinstance(response.text, str) else response.text.decode(response.encoding),
+            text=response.text,
             headers=response.headers,
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,

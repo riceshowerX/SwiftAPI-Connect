@@ -38,10 +38,3 @@ class MockDataService:
             raise KeyError(f"Mock data with key '{key}' not found.")
         self.mock_data[key] = data
         self.save_data()
-
-    def delete_mock_data(self, key: str):
-        # 删除 Mock 数据
-        if key not in self.mock_data:
-            raise KeyError(f"Mock data with key '{key}' not found.")
-        del self.mock_data[key]
-        self.save_data()

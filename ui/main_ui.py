@@ -11,7 +11,7 @@ import secrets
 
 import streamlit as st
 import requests
-from pydantic import BaseModel, AnyUrl, Field, field_validator, ValidationError
+from pydantic import BaseModel, AnyUrl, Field, field_validator, ValidationError, validator  # 导入 validator
 from cryptography.fernet import Fernet
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
@@ -45,12 +45,11 @@ COMMON_ENCODINGS = [
     "euc-kr",
 ]
 
-
+# 使用 Pydantic 定义 HTTPRequestSchema 模型
 class HTTPRequestSchema(BaseModel):
     """
     HTTP 请求模式定义
     """
-
     method: str = Field(..., description="HTTP 方法", example="GET")
     url: str = Field(..., description="请求 URL", example="https://example.com")
     params: Optional[Dict[str, str]] = Field(
@@ -84,6 +83,53 @@ class HTTPRequestSchema(BaseModel):
             )
         return value.upper()  # 统一转换为大写
 
+# 使用 Pydantic 定义 HTTPResponseSchema 模型
+class HTTPResponseSchema(BaseModel):
+    """
+    HTTP 响应模式定义
+    """
+    status_code: int = Field(..., description="响应状态码", example=200)
+    text: str = Field(..., description="响应正文内容")
+    headers: Dict[str, str] = Field(..., description="响应头信息")
+    elapsed: float = Field(..., description="响应时间（秒）", example=0.5)
+    encoding: Optional[str] = Field("utf-8", description="响应正文的编码格式", example="utf-8")
+    content_type: Optional[str] = Field(None, description="响应正文的 MIME 类型", example="text/plain")
+
+    @validator('elapsed')
+    def elapsed_must_be_positive(cls, value):
+        if value <= 0:
+            raise ValueError("Elapsed time must be a positive number.", "elapsed")
+        return value
+
+    @validator('status_code')
+    def status_code_must_be_valid(cls, value):
+        if not 100 <= value <= 599:
+            raise ValueError("Status code must be between 100 and 599.", "status_code")
+        return value
+
+    def to_dict(self):
+        return {
+            "status_code": self.status_code,
+            "text": self.text,
+            "headers": self.headers,
+            "elapsed": self.elapsed,
+            "encoding": self.encoding,
+            "content_type": self.content_type,
+        }
+
+    @classmethod
+    def from_attributes(cls, response: requests.Response):
+        """
+        从 requests.Response 对象创建 HTTPResponseSchema 对象
+        """
+        return cls(
+            status_code=response.status_code,
+            text=response.text,
+            headers=response.headers,
+            elapsed=response.elapsed.total_seconds(),
+            encoding=response.encoding,
+            content_type=response.headers.get('content-type'),
+        )
 
 def send_request(method, url, params, headers, data, json_data, encoding, encryption_enabled):
     try:
@@ -139,7 +185,7 @@ def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bo
             if request_data.json_data is not None:
                 request_data.json_data = {k: encrypt_data(v) for k, v in request_data.json_data.items()}
 
-        response = asyncio.run(send_http_request(
+        response = send_request(
             method=request_data.method,
             url=request_data.url,
             params=request_data.params,
@@ -147,7 +193,7 @@ def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bo
             data=request_data.data,
             json=request_data.json_data,
             encoding=encoding,
-        ))
+        )
 
         response_data = HTTPResponseSchema.from_attributes(response)
 
@@ -172,12 +218,6 @@ def send_http_request_ui(request_data: HTTPRequestSchema, encryption_enabled: bo
         st.error(f"请求失败: {str(e)}")
     finally:
         progress_bar.empty()  # 清除进度条
-
-def generate_encryption_key():
-    """生成新的加密密钥，并使用 KMS 或 Vault 等安全方式存储"""
-    key = Fernet.generate_key()
-    st.session_state.encryption_key = key.decode()
-    st.success("新的加密密钥已生成！")
 
 # --- Streamlit 应用 ---
 

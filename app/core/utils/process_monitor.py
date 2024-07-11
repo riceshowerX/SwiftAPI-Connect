@@ -3,28 +3,27 @@ import psutil
 import time
 import logging
 from app.core.config import settings
+import threading  # 导入 threading 模块
 
 class ProcessMonitor:
     """监控进程状态"""
 
-    def __init__(self, process_id: int, process_name: str):
-        self.process_id = process_id
+    def __init__(self, process, process_name: str):
+        self.process = process
         self.process_name = process_name
 
     def monitor(self):
         while True:
             try:
-                process = psutil.Process(self.process_id)
-
-                if not process.is_running():
+                if not self.process.is_running():
                     logging.warning(f"{self.process_name} is not running!")
                     break
 
-                self.log_resource_usage(process)
+                self.log_resource_usage(self.process)
                 time.sleep(settings.MONITORING_INTERVAL)
 
             except psutil.NoSuchProcess:
-                logging.error(f"Process with ID {self.process_id} not found!")
+                logging.error(f"Process with ID {self.process.pid} not found!")
                 break
             except Exception as e:
                 logging.error(f"An error occurred while monitoring {self.process_name}: {e}")
@@ -42,3 +41,10 @@ class ProcessMonitor:
             logging.warning(f"{self.process_name} CPU usage exceeds threshold: {cpu_percent}%")
         if memory_percent > settings.MEMORY_THRESHOLD:
             logging.warning(f"{self.process_name} Memory usage exceeds threshold: {memory_percent}%")
+
+    def start(self):
+        self.monitor_thread = threading.Thread(target=self.monitor)
+        self.monitor_thread.start()
+
+    def join(self):
+        self.monitor_thread.join()

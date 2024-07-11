@@ -1,47 +1,44 @@
 # notification_service.py
+import smtplib
+from email.mime.text import MIMEText
 import logging
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.memory import MemoryJobStore
-from apscheduler.executors.pool import ThreadPoolExecutor
 import os
+from email.mime.multipart import MIMEMultipart
+import uuid  # 导入 uuid 模块
 
 from app.core.config import settings
 
-class TaskManager:
-    """
-    任务管理类，负责调度任务
-    """
-
+class NotificationService:
     def __init__(self):
-        # 初始化调度器
-        self.scheduler = AsyncIOScheduler(
-            jobstores={"default": MemoryJobStore()},
-            executors={
-                'default': ThreadPoolExecutor(20)  # 可以根据需要调整线程池大小
-            },
-            job_defaults={
-                'coalesce': False,
-                'max_instances': 3
-            },
-            timezone=os.getenv('TZ', 'UTC')
-        )
-        self.scheduler.start()
-        logging.info("Scheduler started successfully.")
+        # 从环境变量中读取 SMTP 服务器信息
+        self.smtp_server = os.getenv('SMTP_SERVER')
+        self.smtp_port = int(os.getenv('SMTP_PORT'))
+        self.sender_email = os.getenv('SENDER_EMAIL')
+        self.sender_password = os.getenv('SENDER_PASSWORD')
 
-    def add_task(self, func, trigger, **kwargs):
-        """添加任务"""
-        job_id = kwargs.get('id', str(uuid.uuid4()))
-        self.scheduler.add_job(func, trigger, id=job_id, replace_existing=True, **kwargs)
-        logging.info(f"Added task: {job_id}")
+    def send_email(self, receiver_email, subject, message, is_html=False):
+        # 发送邮件通知
+        try:
+            msg = MIMEMultipart()
+            msg['Subject'] = subject
+            msg['From'] = self.sender_email
+            msg['To'] = receiver_email
+            msg.attach(MIMEText(message, 'html' if is_html else 'plain'))
 
-    def remove_task(self, job_id):
-        """删除任务"""
-        self.scheduler.remove_job(job_id)
-        logging.info(f"Removed task: {job_id}")
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.sender_email, self.sender_password)
+                server.sendmail(self.sender_email, receiver_email, msg.as_string())
 
-    def get_jobs(self):
-        """获取所有任务"""
-        return self.scheduler.get_jobs()
+            logging.info(f"Successfully sent email to {receiver_email}")
+        except smtplib.SMTPAuthenticationError:
+            logging.error("SMTP authentication error. Check the email and password.")
+        except smtplib.SMTPConnectError:
+            logging.error("SMTP connection error. Check the SMTP server and port.")
+        except smtplib.SMTPRecipientsRefused:
+            logging.error(f"Recipient {receiver_email} refused by the server.")
+        except Exception as e:
+            logging.error(f"Failed to send email: {e}")
 
-# 实例化任务管理器
-task_manager = TaskManager()
+# 在模块初始化时设置日志配置
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
