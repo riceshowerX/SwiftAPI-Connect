@@ -14,4 +14,3 @@
 2024-05-20 20:43:35 - DEBUG - proactor_events.py:634 - Using proactor: IocpProactor
 2024-06-14 10:51:48 - INFO - main.py:32 - FastAPI application setup complete.
 2024-06-14 10:52:40 - INFO - main.py:32 - FastAPI application setup complete.
-2024-06-27 14:01:48 - INFO - main.py:40 - FastAPI application setup complete.

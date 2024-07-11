@@ -30,8 +30,7 @@ def decode_content(content: bytes, encoding: str = None) -> str:
             logging.debug(f"Attempting to decode content with encoding: {enc}")
             return content.decode(enc)
         except UnicodeDecodeError as e:
-            logging.warning(f"UnicodeDecodeError with encoding {enc}: {e}. Trying next encoding.")
-            tried_encodings.append(enc)
+            logging.warning(f"UnicodeDecodeError: {e}. Trying next encoding.")
 
     # 如果所有编码都尝试失败，则使用 chardet 检测编码
     detected_encoding = chardet.detect(content)['encoding']
@@ -41,7 +40,7 @@ def decode_content(content: bytes, encoding: str = None) -> str:
             logging.debug(f"Detected encoding: {detected_encoding}")
             return content.decode(detected_encoding)
         except UnicodeDecodeError as e:
-            logging.warning(f"Failed to decode content with detected encoding {detected_encoding}: {e}")
+            logging.warning(f"Failed to decode content with detected encoding: {e}")
 
     # 所有尝试都失败，抛出自定义异常
     raise DecodingError(f"Failed to decode content. Tried encodings: {tried_encodings}", tried_encodings)

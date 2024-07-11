@@ -12,10 +12,10 @@ async def send_http_request(
     headers: Optional[Dict[str, str]] = None,
     params: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
-    json: Optional[Any] = None,
+    json: Optional[Any] = None,  # 使用 json 参数
     timeout: Optional[float] = None,
     retries: int = 3,
-    backoff_factor: float = 0.3,
+    backoff_factor: float = 0.3, 
     encoding: Optional[str] = None,
     **kwargs: Dict[str, Any]
 ) -> httpx.Response:
@@ -85,29 +85,3 @@ async def send_http_request(
         except Exception as e:
             logging.error(f"An unexpected error occurred: {e}")
             raise HTTPError(status_code=500, detail=str(e))
-
-def log_request_details(response: httpx.Response):
-    logging.debug(f"Request headers: {response.request.headers}")
-    logging.debug(f"Request body: {response.request.content}")
-    logging.debug(f"Response headers: {response.headers}")
-    logging.debug(f"Response body: {response.text}")
-    logging.info(f"Received response: {response.status_code}")
-
-def calculate_retry_delay(attempt: int, backoff_factor: float) -> float:
-    return backoff_factor * (2 ** attempt)
-
-def handle_http_exception(exc: httpx.HTTPStatusError, retries: int, attempt: int, backoff_factor: float):
-    logging.error(f"HTTP error occurred while requesting {exc.request.url!r}: {exc}")
-    if attempt < retries:
-        delay = calculate_retry_delay(attempt, backoff_factor)
-        logging.info(f"Retrying in {delay:.2f} seconds...")
-        return delay
-    raise HTTPError(status_code=exc.response.status_code, detail=exc.response.text)
-
-def handle_request_exception(exc: httpx.RequestError, retries: int, attempt: int, backoff_factor: float):
-    logging.error(f"An error occurred while requesting {exc.request.url!r}: {exc}")
-    if attempt < retries:
-        delay = calculate_retry_delay(attempt, backoff_factor)
-        logging.info(f"Retrying in {delay:.2f} seconds...")
-        return delay
-    raise HTTPError(status_code=500, detail=str(exc))

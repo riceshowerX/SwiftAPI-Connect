@@ -2,40 +2,31 @@
 from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
-import logging
-from app.core.config import settings
 
-# 加载环境变量
-load_dotenv()
+from app.core.routers import http_mock
+import logging
 
 # 从环境变量获取日志级别，默认为 INFO
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
 
-# 设置日志级别和格式
-log_format = "%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
-date_format = "%Y-%m-%d %H:%M:%S"
+# 设置日志级别
 logging.basicConfig(
-    level=getattr(logging, log_level, logging.INFO),
-    format=log_format,
-    datefmt=date_format,
+    level=getattr(logging, log_level),
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
     filename="app.log"
 )
 
-# 添加控制台日志处理器
-console_handler = logging.StreamHandler()
-console_handler.setLevel(getattr(logging, log_level, logging.INFO))
-console_handler.setFormatter(logging.Formatter(fmt=log_format, datefmt=date_format))
-logging.getLogger().addHandler(console_handler)
+# 加载环境变量
+load_dotenv()
 
-# 创建 FastAPI 应用程序实例
 app = FastAPI(
     title="HTTP Mock Server",
     description="A simple HTTP mock server built with FastAPI",
     version="0.1.0"
 )
 
-# 注册路由
-from app.core.routers import http_mock
+# Include routers
 app.include_router(http_mock.router)
 
 logging.info("FastAPI application setup complete.")
