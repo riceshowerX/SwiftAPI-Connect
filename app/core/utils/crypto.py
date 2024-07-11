@@ -13,7 +13,8 @@ if ENCRYPTION_KEY is None:
     ENCRYPTION_KEY = secrets.token_urlsafe(32) 
     os.environ["ENCRYPTION_KEY"] = ENCRYPTION_KEY
 
-fernet = Fernet(ENCRYPTION_KEY.encode())  # 将密钥转换为字节类型
+# 这里直接使用 ENCRYPTION_KEY
+fernet = Fernet(ENCRYPTION_KEY) 
 
 def encrypt_data(data: str) -> str:
     """加密数据"""
