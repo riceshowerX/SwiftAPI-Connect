@@ -1,5 +1,5 @@
 <div align="center" style="display: flex; align-items: center;">
-  <img src="https://riceshowerX.github.io/picx-images-hosting/社交头像.3yeal59d7b.webp" alt="Logo" width="70" height="70" style="margin-right: 10px;"> 
+  <img src="https://github.com/riceshowerX/picx-images-hosting/raw/master/网站/android-chrome-192x192-1.6wqw9el8i6.webp" alt="Logo" width="70" height="70" style="margin-right: 10px;"> 
   <h1>SwiftAPI-Connect</h1> 
 </div>
 
