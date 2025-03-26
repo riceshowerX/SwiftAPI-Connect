@@ -1,37 +1,85 @@
-# request_schema.py
 from typing import Dict, Optional, Union, List
-from pydantic import BaseModel, AnyUrl, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationError
 import validators
 
 class HTTPRequestSchema(BaseModel):
     """
-    HTTP 请求模式定义
+    HTTP请求模式定义
 
-    :param method: HTTP 方法（如 GET, POST）
-    :param url: 请求的 URL
-    :param params: 查询参数
-    :param headers: 请求头
-    :param data: 请求体数据，可以是字符串或字典
-    :param json_data: JSON 请求体数据
-    :param encoding: 请求体的编码
+    Attributes:
+        method: HTTP方法（GET/POST等）
+        url: 请求URL
+        params: 查询参数字典
+        headers: 请求头字典
+        data: 原始请求体数据（字符串或字典）
+        json_data: JSON格式的请求体数据
+        encoding: 请求体编码方式
     """
-    method: str = Field(..., description="HTTP 方法", example="GET")
-    url: str = Field(..., description="请求 URL", example="https://example.com") # 修改为 str
-    params: Optional[Dict[str, str]] = Field({}, description="查询参数", example={"key1": "value1", "key2": "value2"})
-    headers: Optional[Dict[str, Union[str, List[str]]]] = Field({}, description="请求头", example={"User-Agent": "Mozilla/5.0"})
-    data: Optional[Union[str, Dict]] = Field(None, description="请求体数据")
-    json_data: Optional[Dict] = Field(None, description="JSON 请求体数据")
-    encoding: Optional[str] = Field("utf-8", description="请求体的编码", example="utf-8")
+    
+    method: str = Field(
+        ...,
+        description="HTTP方法",
+        example="GET",
+        regex=r"^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)$"
+    )
+    
+    url: AnyUrl = Field(
+        ...,
+        description="请求URL",
+        example="https://example.com"
+    )
+    
+    params: Optional[Dict[str, str]] = Field(
+        default_factory=dict,
+        description="URL查询参数",
+        example={"page": "1", "sort": "asc"}
+    )
+    
+    headers: Optional[Dict[str, Union[str, List[str]]]] = Field(
+        default_factory=dict,
+        description="HTTP请求头",
+        example={"Accept": "application/json"}
+    )
+    
+    data: Optional[Union[str, Dict]] = Field(
+        default=None,
+        description="原始请求体数据"
+    )
+    
+    json_data: Optional[Dict] = Field(
+        default=None,
+        description="JSON格式的请求体数据"
+    )
+    
+    encoding: Optional[str] = Field(
+        default="utf-8",
+        description="请求体编码方式",
+        example="utf-8"
+    )
 
     @field_validator('method')
-    def method_must_be_valid(cls, value):
-        valid_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"]
-        if value.upper() not in valid_methods:
-            raise ValueError(f"Invalid HTTP method: {value}. Valid methods are: {valid_methods}", "method")
-        return value.upper() 
+    def validate_method(cls, value: str) -> str:
+        """验证并标准化HTTP方法"""
+        valid_methods = {
+            "GET", "POST", "PUT", "DELETE", 
+            "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"
+        }
+        standardized = value.upper()
+        if standardized not in valid_methods:
+            raise ValueError(f"不支持的HTTP方法: {value}")
+        return standardized
 
     @field_validator('url')
-    def validate_url(cls, value):
+    def validate_url(cls, value: str) -> str:
+        """验证URL格式有效性"""
         if not validators.url(value):
-            raise ValueError("Invalid URL format.", "url")
+            raise ValueError(f"无效的URL格式: {value}")
+        return value
+
+    @field_validator('data', 'json_data')
+    def check_data_conflict(cls, value, values):
+        """确保data和json_data不同时存在"""
+        if 'data' in values and 'json_data' in values:
+            if values['data'] is not None and values['json_data'] is not None:
+                raise ValueError("data和json_data不能同时存在")
         return value

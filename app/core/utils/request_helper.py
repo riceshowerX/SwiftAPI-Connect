@@ -1,4 +1,3 @@
-#  request_helper.py
 import httpx
 import asyncio
 import logging
@@ -12,76 +11,103 @@ async def send_http_request(
     headers: Optional[Dict[str, str]] = None,
     params: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
-    json: Optional[Any] = None,  # 使用 json 参数
-    timeout: Optional[float] = None,
+    json: Optional[Any] = None,
+    timeout: Optional[float] = 5.0,
     retries: int = 3,
-    backoff_factor: float = 0.3, 
+    backoff_factor: float = 0.3,
     encoding: Optional[str] = None,
     **kwargs: Dict[str, Any]
 ) -> httpx.Response:
     """
-    发送 HTTP 请求，并处理常见的异常情况。
-
-    :param method: HTTP 请求方法，例如 GET、POST 等。
-    :param url: 请求 URL。
-    :param headers: 请求头信息，可选。
-    :param params: URL 查询参数，可选。
-    :param data: 请求体数据，可选。
-    :param json: JSON 格式的请求体数据，可选。
-    :param timeout: 请求超时时间，可选，单位为秒。
-    :param retries: 最大重试次数。
-    :param backoff_factor: 重试间隔的指数退避因子。
-    :param encoding: 请求编码，可选。
-    :param kwargs: 其他关键字参数。
-    :return: HTTP 响应对象。
-    :raises HTTPError: 当 HTTP 请求失败时抛出。
+    增强型异步HTTP请求发送函数
+    
+    Args:
+        method: HTTP方法（GET/POST等）
+        url: 请求URL
+        headers: 请求头
+        params: URL查询参数
+        data: 表单数据
+        json: JSON请求体数据
+        timeout: 超时时间（秒）
+        retries: 最大重试次数
+        backoff_factor: 重试间隔因子
+        encoding: 响应编码
+        **kwargs: 其他httpx参数
+        
+    Returns:
+        httpx.Response 对象
+        
+    Raises:
+        HTTPError: 请求失败时抛出
     """
+    validate_request_body(data, json)
+    
+    async def attempt_request() -> httpx.Response:
+        """执行单次请求尝试"""
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.request(
+                method=method,
+                url=url,
+                headers=headers,
+                params=params,
+                data=data,
+                json=json,
+                **kwargs
+            )
+            response.raise_for_status()
+            return response
+            
     for attempt in range(retries + 1):
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                logging.info(f"Sending {method} request to {url} (attempt {attempt + 1}/{retries + 1}) with params: {kwargs}")
-                response = await client.request(
-                    method=method,
-                    url=str(url),  # 将 url 转换为字符串
-                    headers=headers,
-                    params=params,
-                    data=data,
-                    json=json,  # 使用 json 参数
-                    **kwargs,
-                )
-                logging.debug(f"Request headers: {response.request.headers}")
-                logging.debug(f"Request body: {response.request.content}")
-                logging.debug(f"Response headers: {response.headers}")
-                logging.debug(f"Response body: {response.text}")
-                logging.info(f"Received response: {response.status_code}")
-
-                # 使用 response.encoding 获取响应编码
-                response_encoding = response.encoding
-                logging.info(f"Response encoding: {response_encoding}")
-
-                response.raise_for_status()  # 如果状态码不为 2xx，则抛出异常
-                return response
-
-        except httpx.HTTPStatusError as exc:
-            logging.error(f"HTTP error occurred while requesting {exc.request.url!r}: {exc}")
-            if attempt < retries:
-                # 计算重试间隔
-                delay = backoff_factor * (2 ** attempt)
-                logging.info(f"Retrying in {delay:.2f} seconds...")
-                await asyncio.sleep(delay)
-            else:
-                raise HTTPError(status_code=exc.response.status_code, detail=exc.response.text)
-
-        except httpx.RequestError as exc:
-            logging.error(f"An error occurred while requesting {exc.request.url!r}: {exc}")
-            if attempt < retries:
-                # 计算重试间隔
-                delay = backoff_factor * (2 ** attempt)
-                logging.info(f"Retrying in {delay:.2f} seconds...")
-                await asyncio.sleep(delay)
-            else:
-                raise HTTPError(status_code=500, detail=str(exc))
-
+            response = await attempt_request()
+            configure_response_encoding(response, encoding)
+            log_request_details(response, attempt, retries)
+            return response
+            
+        except httpx.HTTPStatusError as e:
+            handle_http_error(e, attempt, retries, backoff_factor)
+        except httpx.RequestError as e:
+            handle_request_error(e, attempt, retries, backoff_factor)
         except Exception as e:
-            logging.error(f"An unexpected error occurred: {e}")
-            raise HTTPError(status_code=500, detail=str(e))
+            logging.exception("Unexpected error occurred")
+            raise HTTPError(500, f"请求失败: {str(e)}")
+
+def validate_request_body(data: Any, json_data: Any) -> None:
+    """验证请求体参数冲突"""
+    if data is not None and json_data is not None:
+        raise ValueError("data和json参数不能同时使用")
+
+def configure_response_encoding(response: httpx.Response, encoding: Optional[str]) -> None:
+    """配置响应编码方式"""
+    if encoding:
+        response.encoding = encoding
+
+def log_request_details(response: httpx.Response, attempt: int, max_retries: int) -> None:
+    """记录请求详细信息"""
+    logging.info(
+        f"请求成功: {response.request.method} {response.url} "
+        f"(尝试次数: {attempt+1}/{max_retries+1}), "
+        f"状态码: {response.status_code}, "
+        f"编码: {response.encoding}"
+    )
+    logging.debug(f"请求头: {response.request.headers}")
+    logging.debug(f"响应头: {response.headers}")
+    logging.debug(f"响应内容: {response.text}")
+
+def handle_http_error(exc: httpx.HTTPStatusError, attempt: int, max_retries: int, backoff: float) -> None:
+    """处理HTTP状态错误"""
+    if attempt < max_retries:
+        delay = backoff * (2 ** attempt)
+        logging.warning(f"HTTP错误 {exc.response.status_code}, {delay:.1f}秒后重试...")
+        asyncio.sleep(delay)
+    else:
+        raise HTTPError(exc.response.status_code, exc.response.text)
+
+def handle_request_error(exc: httpx.RequestError, attempt: int, max_retries: int, backoff: float) -> None:
+    """处理请求层错误"""
+    if attempt < max_retries:
+        delay = backoff * (2 ** attempt)
+        logging.warning(f"请求错误: {str(exc)}, {delay:.1f}秒后重试...")
+        asyncio.sleep(delay)
+    else:
+        raise HTTPError(500, str(exc))

@@ -1,6 +1,6 @@
-# http_mock.py
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse
+from typing import Dict, Optional
 
 from app.core.utils.request_helper import send_http_request
 from app.core.schemas.request_schema import HTTPRequestSchema
@@ -14,46 +14,51 @@ router = APIRouter(
     tags=["HTTP Mock"]
 )
 
-async def get_encryption_status(request: Request) -> bool:
+def get_encryption_status(request: Request) -> bool:
+    """提取加密状态的依赖函数"""
     return request.headers.get("Encryption", "False").lower() == "true"
 
-@router.post("/request", response_model=HTTPResponseSchema, response_model_exclude_none=True)
-async def make_request(request: Request, data: HTTPRequestSchema, encryption_enabled: bool = Depends(get_encryption_status)):
-    logging.info(f"Received request: {data}")
+def process_encryption(data: Dict, encrypt_func: callable) -> Dict:
+    """递归处理加密/解密的通用函数"""
+    processed = {}
+    for k, v in data.items():
+        if isinstance(v, dict):
+            processed[k] = process_encryption(v, encrypt_func)
+        else:
+            processed[k] = encrypt_func(v) if v is not None else v
+    return processed
+
+@router.post("/request", response_model=HTTPResponseSchema)
+async def make_request(
+    request: Request,
+    data: HTTPRequestSchema,
+    encryption_enabled: bool = Depends(get_encryption_status)
+):
+    """处理HTTP请求的模拟端点"""
+    logging.info(f"Received {data.method} request to {data.url}")
+    
     try:
+        # 加密处理
         if encryption_enabled:
-            data.url = encrypt_data(data.url)
-            if data.params is not None:
-                data.params = {k: encrypt_data(v) for k, v in data.params.items()}
-            if data.headers is not None:
-                data.headers = {k: encrypt_data(v) for k, v in data.headers.items()}
-            if data.data is not None:
-                data.data = encrypt_data(data.data)
-            if data.json_data is not None:
-                data.json_data = {k: encrypt_data(v) for k, v in data.json_data.items()}
+            data_dict = data.model_dump(exclude_unset=True)
+            encrypted_data = process_encryption(data_dict, encrypt_data)
+            data = HTTPRequestSchema(**encrypted_data)
 
-        response = await send_http_request(
-            method=data.method,
-            url=data.url,
-            params=data.params,
-            headers=data.headers,
-            data=data.data,
-            json=data.json_data,  
-            encoding=data.encoding,
-        )
-
+        # 发送请求
+        response = await send_http_request(**data.model_dump(exclude_unset=True))
         response_data = HTTPResponseSchema.from_attributes(response)
 
+        # 解密处理
         if encryption_enabled:
-            response_data.text = decrypt_data(response_data.text)
-            response_data.headers = {k: decrypt_data(v) for k, v in response_data.headers.items()}
+            response_dict = response_data.model_dump(exclude_unset=True)
+            decrypted_data = process_encryption(response_dict, decrypt_data)
+            response_data = HTTPResponseSchema(**decrypted_data)
 
-        logging.info(f"Returning response: {response_data}")
-        return JSONResponse(response_data.to_dict())
+        return JSONResponse(response_data.model_dump(exclude_unset=True))
 
     except HTTPError as e:
+        logging.error(f"HTTP error occurred: {e.detail}")
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.exception("Unexpected error occurred")
+        raise HTTPException(status_code=500, detail="Internal server error")
